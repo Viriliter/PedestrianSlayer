@@ -4,13 +4,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>a418b9d0-2b7f-4ddb-b4a5-7b427e8f515b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>PedestrianSlayer.py</StartupFile>
+    <StartupFile>StartUp.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>PedestrianSlayer</Name>
     <RootNamespace>PedestrianSlayer</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +22,49 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="a.py" />
+    <Compile Include="ImageProcessing\LaneDetector.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ImageProcessing\Line.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ImageProcessing\RoadSignDetector.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main\AutonomousMode.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main\ManuelMode.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MechanicalControl\MotorControl.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MechanicalControl\NeuralNetwork.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MechanicalControl\PID.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MechanicalControl\ServoControl.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PedestrianSlayer.py" />
+    <Compile Include="StartUp.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\ImageProcessing\" />
+    <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\MechanicalControl\" />
+    <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\Communication\" />
+    <Folder Include="Communication\" />
+    <Folder Include="Extras\" />
+    <Folder Include="ImageProcessing\" />
+    <Folder Include="Main\" />
+    <Folder Include="MechanicalControl\" />
+    <Folder Include="Sensors\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
