@@ -29,7 +29,7 @@ class PedestrianSlayer(object):
         '''
         This function will capture user driving mode preferences.
         Depending on choice, it will set modeSelection either True  or False.
-        This method will use ArduinoCommunication class which interprets the input from users
+        This method will use UserCommunication class which interprets the input from users
         '''
 
     def run(self):
@@ -38,12 +38,12 @@ class PedestrianSlayer(object):
                 if(self.modeSelection ):
                     manuelmode = mm.ManuelMode()
                     manuelmode.run()
-                    setIsSelectionChanged(self,False)
+                    PedestrianSlayer.setIsSelectionChanged(self,False)
                 elif not(self.modeSelection):
 
                     automode = am.AutonomousMode()
                     automode.run()
-                    setIsSelectionChanged(self,False)
+                    PedestrianSlayer.setIsSelectionChanged(self,False)
             '''
             There will be if statement to capture user change.
             And then value of isSlectionChanged is setted to true.

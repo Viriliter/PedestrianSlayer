@@ -416,7 +416,7 @@ class LaneDetector():
         '''
         This method runs the LaneDetector class.
         '''
-        self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/ME384ProjectCode/PedestrianSlayer/PedestrianSlayer/ImageProcessing/videoplayback.mp4')
+        self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/Yeniklasör/videoplayback.mp4')
         while(self.cap.isOpened()):
             try:
                 self.ret, self.frame = self.cap.read()
