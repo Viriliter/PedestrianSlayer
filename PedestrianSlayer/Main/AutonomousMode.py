@@ -34,6 +34,13 @@ class AutonomousMode(object):
         '''
         lanedetector = ld.LaneDetector()
         lanedetector.run()
+
+        #Take input from LaneDetector class
+        #Take input from sensors
+        #Combine these inputs and send them to NeuralNetwork class.
+        #NeuralNetwork class will give 2 outputs: Motor PWM and Servo PWM
+        #Use MotorControl.py and ServoControl.py controlling
+
     #Mutators
 
     #Accessors

@@ -222,7 +222,6 @@ class LaneDetector():
         left_fit = np.polyfit(lefty, leftx, 2)
         right_fit = np.polyfit(righty, rightx, 2)
         #print(left_fit) # to measure tolerances
-        print(left_fit)
         # Stash away polynomials
         self.left_line.current_fit = left_fit
         self.right_line.current_fit = right_fit

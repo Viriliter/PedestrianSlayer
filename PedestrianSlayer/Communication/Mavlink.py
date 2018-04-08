@@ -7,19 +7,15 @@ class Mavlink(object):
         self.startField = 0xFE
         self.payloadLength = 0x00
         self.packetSequence = 0x00
-        self.systemID = systemID
-        self.componentID = componentID
-        self.messageID = messageID
-        self.payload = payload
         self.CRC = 0xFF
-        Mavlink.HEXtoString(self)
+        Mavlink.HEXtoString(self,systemID,componentID,messageID,payload)
 
-    def HEXtoString(self):
+    def HEXtoString(self,systemID,componentID,messageID,payload):
         return (str(self.startField)
                 +str(self.payloadLength)
                 +str(self.packetSequence)
-                +str(self.systemID)
-                +str(self.componentID)
-                +str(self.messageID)
-                +str(self.payload)
+                +str(systemID)
+                +str(componentID)
+                +str(messageID)
+                +str(payload)
                 +str(self.CRC))

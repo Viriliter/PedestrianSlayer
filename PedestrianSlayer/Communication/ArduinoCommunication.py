@@ -4,6 +4,8 @@ import Mavlink as ml
 class ArduinoCommunication(object):
     '''
     This class consist of set of necessary function to communicate with arduino.
+    The class is also able to open and close serial port and set its configuration.
+    It takes ready-to-transmission data and sends it via serial port.
     '''
     def __init__(self,portName="/dev/ttyUSB0",baudrate=9600,bytesize=EIGHTBITS,parity=PARITY_NONE,stopbits=STOPBITS_ONE,timeout=None,write_timeout=None):
         self.portName = portName
@@ -71,13 +73,5 @@ class ArduinoCommunication(object):
     #endregion
     #Methods
 
-    def sendData(self,systemID,componentID,messageID,payload,CRC):
-        str = ml.Mavlink(systemID,componentID,messageID,payload,CRC)
-        self.serialCom.write(str)
-
-    def convertToHEX(self):
-        
-
-    def run(self):
-        ArduinoCommunication.convertToHEX(self)
-        ArduinoCommunication.sendData(self)
+    def sendData(self,data):
+        self.serialCom.write(data)

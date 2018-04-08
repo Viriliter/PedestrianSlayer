@@ -28,6 +28,9 @@
     <Compile Include="Communication\Mavlink.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Communication\ProtocolLibrary.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ImageProcessing\LaneDetector.py">
       <SubType>Code</SubType>
     </Compile>
