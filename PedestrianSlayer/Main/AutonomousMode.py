@@ -1,4 +1,6 @@
 from ImageProcessing import LaneDetector as ld
+from MechanicalControl import MotorControl as mc
+from MechanicalControl import ServoControl as sc
 
 class AutonomousMode(object):
     '''
@@ -25,6 +27,9 @@ class AutonomousMode(object):
         After each driving mode switch, the motor will be stoped and servo is setted to default
         For this, MotorControl class will be used.
         '''
+        self.motorControl = mc.MotorControl()
+        self.servoControl = sc.ServoControl()
+
         AutonomousMode.run(self)
 
     def run(self):

@@ -28,7 +28,7 @@
     <Compile Include="Communication\Mavlink.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Communication\ProtocolLibrary.py">
+    <Compile Include="System\Reboot.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ImageProcessing\LaneDetector.py">
@@ -68,11 +68,12 @@
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\MechanicalControl\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\Communication\" />
     <Folder Include="Communication\" />
-    <Folder Include="Extras\" />
+    <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\System\" />
     <Folder Include="ImageProcessing\" />
     <Folder Include="Main\" />
     <Folder Include="MechanicalControl\" />
     <Folder Include="Sensors\" />
+    <Folder Include="System\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
