@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import time
+import threading
 from collections import deque
 from . import Line
 
@@ -30,6 +31,7 @@ class LaneDetector():
         self.YmperPix = 30/720          # meters per pixel in y dimension
         self.errorCnt = 0
         self.prevErrorCnt = 0
+        self.captureVideo("")
     #Mutators
     #region
     def setFrame(self, frame):
@@ -115,8 +117,11 @@ class LaneDetector():
 
     #Methods
     #region
-    def captureVideo(self, source = None):
-        return cv2.VideoCapture(source)
+    def captureVideo(self, source = ""):
+        if(source==""):
+            self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/Yeniklasör/videoplayback.mp4')
+        else:
+            self.cap = cv2.VideoCapture(0)
 
     def setResolution(self, weight, height):
         self.width = width
@@ -196,7 +201,7 @@ class LaneDetector():
             # Draw the windows on the visualization image
             vi=cv2.rectangle(out_img, (win_xleft_low,win_y_low), (win_xleft_high,win_y_high), color=(0,255,0), thickness=2) # Green
             vi=cv2.rectangle(out_img, (win_xright_low,win_y_low), (win_xright_high,win_y_high), color=(0,255,0), thickness=2) # Green
-            cv2.imshow('aa',vi)
+            #cv2.imshow('aa',vi)
             # Identify the nonzero pixels in x and y within the window
             good_left_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & (nonzerox >= win_xleft_low) & (nonzerox < win_xleft_high)).nonzero()[0]
             good_right_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & (nonzerox >= win_xright_low) & (nonzerox < win_xright_high)).nonzero()[0]
@@ -365,7 +370,11 @@ class LaneDetector():
                 fontScale=1, color=(255,255,255), lineType = cv2.LINE_AA, thickness=2)
         cv2.putText(result,"C. Position: " + "{:0.2f}".format(offset) + 'm', org=(50,150), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1, color=(255,255,255), lineType = cv2.LINE_AA, thickness=2)
-
+        
+        self.left_curverad = left_curverad
+        self.right_curverad = right_curverad
+        self.offset = offset
+        
         return result
 
     def showLane(self, nbins=10):
@@ -387,16 +396,14 @@ class LaneDetector():
         r_params.append(right_fit)
         l_radius.append(left_curverad)
         r_radius.append(right_curverad)
+        
         annotatedFrame = LaneDetector.drawLane(self, self.warpedFrame,
                                         np.average(l_params,0,weights[-len(l_params):]),
                                         np.average(r_params,0,weights[-len(l_params):]),
                                         np.average(l_radius,0,weights[-len(l_params):]),
                                         np.average(r_radius,0,weights[-len(l_params):]))
         return annotatedFrame
-        '''
-
-
-        '''
+        
 
     def showLaneParameters(self):
         return (getLeftFit(self),
@@ -409,42 +416,59 @@ class LaneDetector():
                 "LeftCurveRad:"+str(getLeftCurveRad(self))+" "+
                 "RightFit:"+str(getRightFit(self))+" "+
                 "RightCurveRad:"+str(getRightCurveRad(self)))
+    
+    def waitKey(self):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            self.cap.release()
+            cv2.destroyAllWindows()
 
+    def release(self):
+            self.cap.release()
+            cv2.destroyAllWindows()
+
+    def showFrame(self,targetFrameType="frame"):
+        try:
+            if (targetFrameType=="frame"):
+                cv2.imshow('Frame',self.frame)
+            elif(targetFrameType=="Undistorted"):
+                cv2.imshow('Undistorted',self.undistorted)
+            elif(targetFrameType=="WarpedFrame"):
+                cv2.imshow('WarpedFrame',self.warpedFram)
+            elif(targetFrameType=="AnnotedFrame"):
+                cv2.imshow('AnnotedFrame',self.annotatedFrame)
+        except:
+            pass
+        
     #endregion
 
     #Main Method
-    def run(self):
+    def getLaneParameters(self):
         '''
         This method runs the LaneDetector class.
         '''
-        self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/Yeniklasör/videoplayback.mp4')
-        while(self.cap.isOpened()):
+        if(self.cap.isOpened()):
             try:
                 self.ret, self.frame = self.cap.read()
 
                 self.undistorted = self.frame
 
-                cv2.imshow('Undistorted',self.undistorted)
+                #cv2.imshow('Undistorted',self.undistorted)
 
                 canny = cv2.Canny(self.undistorted,200,255)
             
-            
-
                 self.warpedFrame = LaneDetector.warpPerspective(self, canny)
             
-                cv2.imshow('Canny',self.warpedFrame)
-            
-                annotatedFrame = LaneDetector.showLane(self)
-            
-                cv2.imshow('Masked',annotatedFrame)
+                #cv2.imshow('Canny',self.warpedFrame)
 
-                #At there, it should be break statement to terminate the function, it is neccassary to 
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+                self.annotatedFrame = LaneDetector.showLane(self)
+            
+                #cv2.imshow('Masked',self.annotatedFrame)
+                return (self.left_curverad,self.right_curverad,self.offset)
             except:
                 self.prevErrorCnt=self.errorCnt
                 self.errorCnt= self.errorCnt+1
-                print("{n} of Error in reading",self.errorCnt)
+                #print(str(self.errorCnt)+" of Error in reading")
+                return (0,0,0)
         # When everything done, release the capture
         self.cap.release()
         cv2.destroyAllWindows()

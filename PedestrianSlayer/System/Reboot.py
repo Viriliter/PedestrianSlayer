@@ -1,6 +1,6 @@
 import os
 class Reboot(object):
-    """description of class"""
-def __init__():
-    os.system('sudo shutdown -r now')
+    """Stops the running of all components and reboots pi"""
+    def __init__():
+        os.system('sudo shutdown -r now')
 

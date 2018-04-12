@@ -38,14 +38,17 @@ class AutonomousMode(object):
         Multi threading is neccasary for both lane and road sign detection
         '''
         lanedetector = ld.LaneDetector()
-        lanedetector.run()
-
+        while(True):
+            p1,p2,p3 = lanedetector.getLaneParameters()
+            print(str(p1)+" ; "+str(p2)+" ; "+str(p3))
+            #lanedetector.showFrame("AnnotedFrame")
+            #lanedetector.waitKey()
         #Take input from LaneDetector class
         #Take input from sensors
         #Combine these inputs and send them to NeuralNetwork class.
         #NeuralNetwork class will give 2 outputs: Motor PWM and Servo PWM
         #Use MotorControl.py and ServoControl.py controlling
-
+            
     #Mutators
 
     #Accessors

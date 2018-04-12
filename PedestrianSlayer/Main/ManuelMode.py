@@ -1,6 +1,6 @@
 from MechanicalControl import MotorControl as mc
 from MechanicalControl import ServoControl as sc
-
+from Communication import UserCommunication as uc
 class ManuelMode(object):
     '''
     ***Algorithm Summary***
@@ -16,6 +16,7 @@ class ManuelMode(object):
         '''
         self.motorControl = mc.MotorControl()
         self.servoControl = sc.ServoControl()
+        self.userCom = uc.UserCommunication()
 
     #Mutators
 

@@ -28,6 +28,12 @@
     <Compile Include="Communication\Mavlink.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Communication\UserCommunication.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ImageProcessing\ProcessHandler.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="System\Reboot.py">
       <SubType>Code</SubType>
     </Compile>
@@ -60,6 +66,9 @@
     </Compile>
     <Compile Include="PedestrianSlayer.py" />
     <Compile Include="StartUp.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\Shutdown.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
