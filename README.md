@@ -5,7 +5,15 @@ The car simply has two modes: Manuel and autonomous.In manuel mode, the user wil
 ## Getting Started
 
 ### Prerequisites
-
+#### Hardware:
+```
+Raspberry Pi 3 B+
+Arduino Uno
+```
+#### Software:
+```
+OpenCV
+```
 ### Installing
 
 ## Running the tests
