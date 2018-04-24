@@ -8,10 +8,10 @@ class MotorControl(object):
     '''
     #Initializer
     def __init__(self):
-        self.componentID = "_MOT"
+        self.componentID = "_MOTOR"
         self.messageID = None
         self.payload = None
-        self.protocolLib = ml.ProtocolLibrary()
+        self.mavlink = ml.Mavlink()
         self.serial = ac.ArduinoCommunication()
     
     #Mutators
@@ -36,13 +36,13 @@ class MotorControl(object):
     def stopMotor(self):
         try:
             self.messageID = "_STOP"
-            self.payload = b"\00"
-            data = self.protocolLib().convertToByte(self,self.componentID,self.messageID,self.payload)
+            payload=self.payload
+            data = self.mavlink.convertToByte(self.componentID,self.messageID)
             self.payload = None
             self.serial.sendData(data)
-            return True
+            return data
         except:
-            return False
+            return -1
 
     def calibrateMotor(self):
         '''
@@ -52,27 +52,27 @@ class MotorControl(object):
     def forwardMotor(self,value):
         try:
             self.messageID = "_FORWARD"
-            self.payload = value
-            data = self.protocolLib().convertToByte(self,self.componentID,self.messageID,self.payload)
+            self.payload = value 
+            data = self.mavlink.convertToByte(self.componentID,self.messageID)
             self.payload = None
             self.serial.sendData(data)
-            return True
+            return data
         except:
-            return False
+            return -1
 
     def backwardMotor(self,value):
         try:
             self.messageID = "_BACKWARD"
             self.payload = value
-            data = self.protocolLib().convertToByte(self,self.componentID,self.messageID,self.payload)
+            data = self.mavlink.convertToByte(self.componentID,self.messageID)
             self.payload = None
+            
             self.serial.sendData(data)
-            return True
+            
+            return data
         except:
-            return False
+            return -1
 
     #MotorInput
 
     #PWM Generator
-
-

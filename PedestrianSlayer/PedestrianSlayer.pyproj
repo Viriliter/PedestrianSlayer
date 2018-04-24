@@ -71,8 +71,10 @@
     <Compile Include="System\Shutdown.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Tests\CommunicationTest.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Arduino Code\ArduinoMainCode\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\ImageProcessing\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\MechanicalControl\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\Communication\" />
@@ -81,8 +83,13 @@
     <Folder Include="ImageProcessing\" />
     <Folder Include="Main\" />
     <Folder Include="MechanicalControl\" />
+    <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\Arduino Code\" />
+    <Folder Include="Tests\" />
     <Folder Include="Sensors\" />
     <Folder Include="System\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Arduino Code\ArduinoMainCode\ArduinoMainCode.ino" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

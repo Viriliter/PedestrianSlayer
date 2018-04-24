@@ -10,7 +10,7 @@ class ServoControl(object):
         self.componentID = "_SERVO"
         self.messageID = None
         self.payload = None
-        self.protocolLib = ml.ProtocolLibrary()
+        self.mavlink = ml.Mavlink()
         self.serial = ac.ArduinoCommunication()
     
     #Mutators
@@ -39,7 +39,7 @@ class ServoControl(object):
         try:
             self.messageID = "_ANGLE"
             self.payload = value
-            data = self.protocolLib.convertToByte(self,self.componentID,self.messageID,self.payload)
+            data = self.mavlink.convertToByte(self,self.componentID,self.messageID,self.payload)
             self.payload = None
             self.serial.sendData(data)
             return True
@@ -54,7 +54,7 @@ class ServoControl(object):
         try:
             self.messageID = "_DEFAULT"
             self.payload = 0
-            data = self.protocolLib.convertToByte(self,self.componentID,self.messageID,self.payload)
+            data = self.mavlink.convertToByte(self,self.componentID,self.messageID,self.payload)
             self.payload = None
             self.serial.sendData(data)
             return True

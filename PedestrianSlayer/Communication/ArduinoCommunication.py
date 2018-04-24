@@ -8,7 +8,7 @@ class ArduinoCommunication(object):
     The class is also able to open and close serial port and set its configuration.
     It takes ready-to-transmission data and sends it via serial port.
     '''
-    def __init__(self,portName="/dev/ttyUSB0",baudrate=9600,bytesize=8,parity='N',stopbits=1,timeout=None,write_timeout=None):
+    def __init__(self,portName="/dev/ttyUSB0",baudrate=19200,bytesize=8,parity='N',stopbits=1,timeout=None,write_timeout=None):
         self.portName = portName
         self.baudrate = baudrate
         self.bytesize = bytesize
@@ -16,7 +16,9 @@ class ArduinoCommunication(object):
         self.stopbits = stopbits
         self.timeout = timeout
         self.write_timeout = write_timeout
+        self.isDataSended = True
         #self.serialCom = serial.Serial(self.portName,self.baudrate,self.bytesize,self.parity,self.stopbits,timeout,write_timeout=self.write_timeout)
+        self.timer = 0
 
     #Mutators
     #region
@@ -75,4 +77,34 @@ class ArduinoCommunication(object):
     #Methods
 
     def sendData(self,data):
+        time.sleep(0.2)
+        #self.serial.inWaiting()
         self.serialCom.write(data)
+        self.serial.inWaiting()
+        #time.sleep(0.5)
+        raise Exception
+        while(ArduinoCommunication.isAcknowledged(self)):
+            time.sleep(0.05)
+            ArduinoCommunication.countTimer(self)
+            if(self.timer>100):
+                ArduinoCommunication.resetTimer(self)
+                break
+            
+    def isAcknowledged(self):
+        if not(ArduinoCommunication.getData(self,3)==b'ACK'):
+            raise Exception
+            return True
+        else:
+            raise Exception
+            return False
+        
+    def countTimer(self):       
+        self.timer += 1
+
+    def resetTimer(self):
+        self.timer = 0
+        
+    def getData(self,byte_size = 8):
+        data = self.serialCom.read(byte_size)
+        return data
+        
