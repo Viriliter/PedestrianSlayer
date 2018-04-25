@@ -1,44 +1,88 @@
+//=====================
+//Region Libraries
+//=====================
+  //some libraries should be downloaded
+  //#include <Servo.h>
+  //#include <PID_v1.h>
+//=====================
 //Region Configuration Tab
+//=====================
   int redLED = 8;
   int yellowLED = 9;
   int blueLED = 10;
+
+  bool DIRECTION = True;            //set to forward direction
+                                    //(false value is backward direction)
+  bool ISDIRECTIONCHANGED = False;
+  
   //Motor Configuration
   int MOTOR_PIN = 9;
+  Servo motor;
+  
   //Servo Configuration
   int SERVO_PIN = 10;
+  Servo servo;
+
+  //PID Configuration
+  //------------------------
+  //Define Variables we'll be connecting to
+  double Setpoint, Input, Output;
+  //Define the aggressive and conservative Tuning Parameters
+  double aggKp=4, aggKi=0.2, aggKd=1;
+  double consKp=1, consKi=0.05, consKd=0.25;
+  
+  //Specify the links and initial tuning parameters
+  PID motorPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
+  //------------------------
+    
   //Light Configuration
   int BRAKE_LIGHT_PIN = 3;
   int LEFT_TURNING_PIN = 4;
   int RIGHT_TURNING_PIN = 5;
   int HIGH_BEAM_PIN = 6;
+  
   //Ultrasonic Configuration
   int ULTRAS_TRIG = 7;
   int ULTRA_ECHO = 8;
+  
   // MPU6050 Configuration
   int MPU_INT = 2;
   int MPU_SCL = A7;
   int MPU_SCA = A6;
+  
   //Serial Configuration
   int BAUD_RATE = 19200;
   int PACKET_SIZE = 8;
 //End Region
 
+//Call methods
 void serialRead();
 void serialWrite();
 void HEXClassifier(byte input[]);
 
 void setup() {
-  // put your setup code here, to run once:
+  //=====================
+  // This is test code:
+  //=====================
   pinMode(redLED,OUTPUT);
   pinMode(yellowLED,OUTPUT);
   pinMode(blueLED,OUTPUT);
   Serial.begin(BAUD_RATE);
-
+  //===========================
+  //This is actual setup code
+  //===========================
+  /*Attach motor and servo pins
+  motor.attach(MOTOR_PIN);
+  servo.attach(SERVO_PIN);
+  //turn the PID on
+  motorPID.SetMode(AUTOMATIC);
+  */
 }
 
 
-
+//===========================
 //Region Serial Communication
+//===========================
   void serialRead()
   {  
     if(Serial.available())
@@ -89,16 +133,33 @@ void setup() {
               {
                 Serial.println("ACK");
                 blinkLEDTest(0);
+                //stopMotor();
               }
               else if(input[5]==0xFE)//Message ID:Forward
               {
                 Serial.println("ACK");
                 blinkLEDTest(1);
+                /*
+                if(DIRECTION)
+                {
+                ISDIRECTIONCHANGED=False;
+                value = input[6];
+                }
+                else{DIRECTION=True;ISDIRECTIONCHANGED=True;}
+                */
               }
               else if(input[5]==0xFD)//Message ID:Backward
               {
                 Serial.println("ACK");
                 blinkLEDTest(2);
+                /*
+                if(!DIRECTION)
+                {
+                ISDIRECTIONCHANGED=False;
+                value = input[6];
+                }
+                else{DIRECTION=False;ISDIRECTIONCHANGED=TRUE;}
+                */
               }
             }
             else if(input[4]==0xFD)//Component ID:Servo
@@ -142,7 +203,9 @@ void runLED(String command)
 }
 //End Region
 
+//===========================
 //Region Control Methods
+//===========================
   void lightControl(int sequence)
   {
     
@@ -160,16 +223,41 @@ void runLED(String command)
   
   void motorPWM(int cycle)
   {
-  
+    //Check direction
+    /*
+    if(DIRECTION)//Forward direction
+    {
+      if(ISDIRECTIONCHANGED)
+      {
+      stopMotor();delay(500);
+      //Set motor rotation direction
+      }
+      //Write the cycle to motor
+      motor.writeMicroseconds(cycle);
+    }
+    else//Backward Direction
+    {
+      if(ISDIRECTIONCHANGED)
+      {
+      stopMotor();delay(500);
+      //Set motor rotation direction
+      }
+      //Write the cycle to motor
+      motor.writeMicroseconds(cycle);
+    }
+    */
   }
   
-  void servoPWM(int cycle)
+  void servoAngle(int angle)
   {
-  
+    //servo.write(angle);
   }
+
 //End Region
 
-//Region Sensor 
+//===========================
+//Region Sensor
+//=========================== 
   void measureDistance()
   {
     
@@ -181,7 +269,9 @@ void runLED(String command)
   }
 //End Region
 
+//===========================
 //Region Test
+//===========================
 void blinkLEDTest(int i)
 {
   if(i==0){digitalWrite(redLED,LOW);digitalWrite(yellowLED,LOW);digitalWrite(blueLED,LOW);
@@ -195,9 +285,41 @@ void blinkLEDTest(int i)
 }
 //End Region
 
+//===========================
+// Main Loop
+//===========================
 void loop() 
 {
+  //=========================
+  //just for the test
   serialRead();
   delay(5);
   //serialWrite();
+  //=========================
+
+  //Take commands from its master over serial
+  /*
+  serialRead()
+  delay(5);
+  */
+  
+  //this is for PID control of the motor
+  /*
+  Input = analogRead(PIN_INPUT);//PIN_INPUT will either connected
+                                //to sensor or gets a variable
+
+  double gap = abs(Setpoint-Input); //distance away from setpoint
+  if (gap < 10)
+  {  //we're close to setpoint, use conservative tuning parameters
+    motorPID.SetTunings(consKp, consKi, consKd);
+  }
+  else
+  {
+     //we're far from setpoint, use aggressive tuning parameters
+     motorPID.SetTunings(aggKp, aggKi, aggKd);
+  }
+
+  motorPID.Compute();
+  MotorPWM(Output);
+  */  
 }
