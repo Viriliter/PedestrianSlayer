@@ -1,5 +1,6 @@
 # Pedestrian Car Project
-Autonomous RC Car Project
+Autonomous RC Car Project by Bilkent University ME384 Term Project
+Group: CULT OF MECHATRONICUS
 
 ## Getting Started
 This repo consists last version of codes of Pedestrian Slayer car which is for school mechatronic term project. However, it still needs heavily development and fixing the bugs in the code. The system is designed for interection between both Raspberry Pi 3 B+ and Arduino Uno.
