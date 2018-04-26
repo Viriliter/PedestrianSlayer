@@ -1,5 +1,5 @@
 # Pedestrian Car Project
-Autonomous RC Car Project by Bilkent University ME384 Term Project
+Autonomous RC Car Project by Bilkent University ME384 Term Project,
 Group: CULT OF MECHATRONICUS
 
 ## Getting Started
