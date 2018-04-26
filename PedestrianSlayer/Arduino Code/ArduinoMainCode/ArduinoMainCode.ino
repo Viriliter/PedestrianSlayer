@@ -92,31 +92,32 @@ void setup() {
       //delay(10);
       Serial.readBytes(buffer_read,PACKET_SIZE);
       if(buffer_read[0]==0xFE)
-      {HEXClassifier(buffer_read);}
+      {DataClassifier(buffer_read);}
       else
       {Serial.end();Serial.begin(BAUD_RATE);}
     }
     
   }
   
-  void serialWrite()
-  {  
+  void serialWrite(byte data[])
+  { 
+    //----------------------------
     //Writes data to raspberry pi
+    //----------------------------
     if(Serial.available())
     {
-      //Reads data from raspberry pi
-      byte buffer_write[] = {0,0,0,0,0,0,0,0};
       //delay(10);
-      Serial.readBytes(buffer_write,PACKET_SIZE);
-      if(buffer_write[0]==0xFE)
-      {HEXClassifier(buffer_write);}
-      else
-      {Serial.end();Serial.begin(BAUD_RATE);}
+      PACKET_SIZE = data[1];
+      Serial.write(data[],PACKET_SIZE);
+      Serial.flush;
     } 
   }
   
-  void HEXClassifier(byte input[])
+  void DataClassifier(byte input[])
   {
+    //----------------------------
+    //Classify input data to corresponding custom MAVLINK protocole
+    //----------------------------
     byte payload;
     //MAVLINK parameters to decode
     if(input[0]==0xFE)//Start Field
@@ -185,44 +186,102 @@ void setup() {
     }
   }
 
-void runLED(String command)
-{
-  if(command=="STOP")
+  byte mavlink(String componentID,String messageID, long payload)
   {
-    blinkLEDTest(0);
+    //----------------------------
+    //It converts payload to byte array according to its component,message IDs
+    //----------------------------
+    _STARTFIELD = 0xFE;  //Start Field
+    _PAYLOADLENGTH = 0x04; //Payload Length Field
+    _PACKETSEQUENCE = 0x00;  //Packet Sequence Field
+    _CRC = 0xFF; //End Field
+    _PAYLOAD = Null;
+    // systemID
+    _SYSTEMID = 0xFE;
+    // componentID
+    if(componentID=="MPU_ACCEL")
+    {
+      _COMPONENTID = 0xFE;
+      if(messageID=="X"){_MESSAGEID = 0xFF; _PAYLOAD = payload;}
+      else if(messageID=="Y"){_MESSAGEID = 0xFE; _PAYLOAD = payload;}
+      else if(messageID=="Z"){_MESSAGEID = 0xFD; _PAYLOAD = payload;}
+    }
+    else if(componentID=="MPU_ORIENT")
+    {
+      _COMPONENTID = 0xFD;
+      if(messageID=="X"){_MESSAGEID = 0xFF; _PAYLOAD = payload;}
+      else if(messageID=="Y"){_MESSAGEID = 0xFE; _PAYLOAD = payload;}
+      else if(messageID=="Z"){_MESSAGEID = 0xFD; _PAYLOAD = payload;}
+    }
+    else if(componentID=="ULTRASONIC")
+    {
+      _COMPONENTID = 0xFF;
+      if(messageID=="DISTANCE"){_MESSAGEID = 0xFF; _PAYLOAD = payload;}
+    }
+    else if(componentID=="OPTICALNAVIGATOR")	//(It is optional and maybe won't be used.)
+    {
+      _COMPONENTID = 0xFC;
+      if(messageID=="X"){_MESSAGEID = 0xFF ;_PAYLOAD = payload;}
+      else if(messageID=="Y"){_MESSAGEID = 0xFE; _PAYLOAD = payload;}
+    }
+    data = {_STARTFIELD,_PAYLOADLENGTH,_PACKETSEQUENCE,_SYSTEMID,_COMPONENTID,_MESSAGEID,_PAYLOAD,_CRC};
+    return data
   }
-  else if(command=="FORWARD")
+
+
+  void runLED(String command)
   {
-    blinkLEDTest(1);
+    //----------------------------
+    //Test run for communication
+    //----------------------------
+    if(command=="STOP")
+    {
+      blinkLEDTest(0);
+    }
+    else if(command=="FORWARD")
+    {
+      blinkLEDTest(1);
+    }
+    else if(command=="BACKWARD")
+    {
+      blinkLEDTest(2);
+    }
+    
   }
-  else if(command=="BACKWARD")
-  {
-    blinkLEDTest(2);
-  }
-  
-}
-//End Region
+ //End Region
+
+
+
 
 //===========================
 //Region Control Methods
 //===========================
   void lightControl(int sequence)
   {
-    
+    //----------------------------
+	//It will control car lights.(It is optional and maybe won't be used.)
+	//----------------------------
   }
   
-  void motorPID()
-  {
+
+  /* These will probably not used.
+	  void motorPID()
+	  {
     
-  }
+	  }
   
-  void servoPID()
-  {
+	  void servoPID()
+	  {
     
-  }
-  
+	  }
+  */
+
+
   void motorPWM(int cycle)
   {
+    //----------------------------
+    //It gets duty cycle as input and converts and writes to esc as PWM value.
+    //----------------------------
     //Check direction
     /*
     if(DIRECTION)//Forward direction
@@ -250,24 +309,37 @@ void runLED(String command)
   
   void servoAngle(int angle)
   {
+    //----------------------------
+    //Gets angle and writes to servo motor.
+    //----------------------------
     //servo.write(angle);
   }
 
 //End Region
 
+
+
+
 //===========================
 //Region Sensor
 //=========================== 
-  void measureDistance()
+  double measureDistance()
   {
-    
+    //----------------------------
+    //Distance is measured and returned as double value using ultrasonic distance sensor.
+    //---------------------------- 
   }
   
   void MPU6050()
   {
-    
+    //----------------------------
+    //Measures acceleration and orientation values from MPU6050.
+    //---------------------------- 
   }
 //End Region
+
+
+
 
 //===========================
 //Region Test
@@ -290,8 +362,12 @@ void blinkLEDTest(int i)
 //===========================
 void loop() 
 {
+  //----------------------------
+  //It is main loop. It process relevant information as long as arduino runs.
+  //----------------------------
+  
   //=========================
-  //just for the test
+  //Just for the test
   serialRead();
   delay(5);
   //serialWrite();

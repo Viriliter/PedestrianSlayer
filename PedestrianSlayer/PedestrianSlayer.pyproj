@@ -74,6 +74,7 @@
     <Compile Include="Tests\CommunicationTest.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Arduino Code\" />
     <Folder Include="Arduino Code\ArduinoMainCode\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\ImageProcessing\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\MechanicalControl\" />

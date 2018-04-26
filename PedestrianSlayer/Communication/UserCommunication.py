@@ -153,7 +153,7 @@ class UserCommunication(object):
                     address = "SYSTEM_SHUTDOWN"
                     Shutdown.Shutdown()
                     return address
-                elif(_MESSAGEID==b""):              #REBOOT
+                elif(_MESSAGEID==b"xFF"):              #REBOOT
                     from System import Reboot
                     address = "SYSTEM_REBOOT"
                     Reboot.Reboot()
@@ -209,5 +209,3 @@ class UserCommunication(object):
                     return address 
         address = None
         value = 0
-
-    
