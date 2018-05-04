@@ -1,5 +1,6 @@
 from Communication import ArduinoCommunication as ac
 from Communication import Mavlink as ml
+from Sensors import SpeedSensor
 import math
 
 class MotorControl(object):
@@ -14,7 +15,8 @@ class MotorControl(object):
         self.payload = None
         self.mavlink = ml.Mavlink()
         self.serial = ac.ArduinoCommunication()
-    
+        self.speedSensor = SpeedSensor.SpeedSensor()
+
     #Mutators
     def setPayload(self,payload):
         self.payload = payload
@@ -47,10 +49,13 @@ class MotorControl(object):
 
     def calibrateMotor(self):
         '''
-        The function is forinitial calibration and setup
+        The function is for initial calibration and setup of the motor
         '''
 
     def forwardMotor(self,value):
+        '''
+        Sends duty cycle of the motor in forward direction to Arduino
+        '''
         try:
             self.messageID = "_FORWARD"
             self.payload = value 
@@ -62,6 +67,9 @@ class MotorControl(object):
             return -1
 
     def backwardMotor(self,value):
+        '''
+        Sends duty cycle of the motor in reverse direction to Arduino
+        '''
         try:
             self.messageID = "_BACKWARD"
             self.payload = value
@@ -81,18 +89,43 @@ class MotorControl(object):
         nu = 0.13
         #Gravitiy constant
         g = 9.81
+
         #Curvature information
         k=1/radius
+        
         #Calculate ideal speed
-        idealSpeed = math.sqrt((e+nu)*g/k)
+        v_ideal = math.sqrt((e+nu)*g/k)
         return idealSpeed
 
-    def speedNegotiation(self,radius,targetSpeed,currentSpeed):
+    def speedNegotiation(self,radius,v_target,v_current):
         #Deceleration  value
-        a = 2   #m/s^2
-        #Calculate Trigger distance
-        d_trig =(targetSpeed*targetSpeed-currentSpeed*currentSpeed)/(2*a)
-        #Get ideal Speed
-        idealSpeed = MotorControl.getIdealSpeed(self,radius)
-        if(currentSpeed>idealSpeed):
-            if(idealSpeed==v_c):
+        a_neg = 2   #Maximum deceleration (m/s^2)
+        a_max = 2   #Maximum acceleration (m/s^2)
+        
+        #Calculate trigger distance
+        d_trig =(v_target*v_target-v_current*v_current)/(2*a)
+        
+        #Get ideal speed
+        v_ideal = MotorControl.getIdealSpeed(self,radius)
+        
+        #Get current speed
+        v_current = self.speedSensor.getCurrentSpeed()
+
+        if(v_current>v_ideal):
+            if(v_ideal==v_c):
+                if((d_current>=d_c-d_trig) and
+                (d_current<=d_c+l_c)):
+                    #Apply a_neg until v_current=v_ideal
+                    min_value = 0 #Duty cycle of motor(0-100) for max acceleration
+
+            else:
+                if((d_current>=d_l-d_trig) and
+                (d_current<=d_l)):
+                    #Apply a_neg until v_current = v_ideal
+                    min_value = 0 #Duty cycle of motor(0-100) for max acceleration
+
+        else:
+            #Apply a_max until reaching v_ideal
+            max_value = 100 #Duty cycle of motor(0-100) for max acceleration
+            MotorControl.forwardMotor(self,value)
+            

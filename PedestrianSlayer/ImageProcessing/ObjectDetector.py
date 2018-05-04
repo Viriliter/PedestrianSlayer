@@ -2,8 +2,8 @@ import numpy as np
 import cv2
 import time
 import math
-#Not activate until the system is integrated to RasPi
-#import RPi.GPIO as GPIO
+from Sensors import UltrasonicSensor
+
 
 class ObjectDetector():
     '''
@@ -19,14 +19,7 @@ class ObjectDetector():
         self.XmperPix = 3.7/700         # meters per pixel in x dimension
         self.YmperPix = 30/720          # meters per pixel in y dimension
         self.minimumDistance = math.inf
-        #--------------------------------------------------------------------------------------------------
-        #Set ultrasonic sensor configuraiton.These will be unactive until the system is integrated to RasPi
-        #--------------------------------------------------------------------------------------------------
-        #Set GPIO Mode
-        #GPIO.setmode(GPIO.BCM)
-        #Set GPIO Pins
-        #self.GPIO_TRIGGER = 18
-        #self.GPIO_ECHO = 24
+        self.ultrasonicSensor = UltrasonicSensor.UltrasonicSensor()
 
     #Mutators
 
@@ -114,34 +107,7 @@ class ObjectDetector():
     
     #Methods
     #region 
-    def measureDistance(self):
-        #==========================================================================================================
-        #Measures distance from ultrasoin sensor using ultrasonic sensor class. Return the distance as double value
-        #==========================================================================================================
-        # set Trigger to HIGH
-        GPIO.output(self.GPIO_TRIGGER, True)
- 
-        # set Trigger after 0.01ms to LOW
-        time.sleep(0.00001)
-        GPIO.output(self.GPIO_TRIGGER, False)
- 
-        StartTime = time.time()
-        StopTime = time.time()
- 
-        #Save StartTime
-        while GPIO.input(self.GPIO_ECHO) == 0:
-            startTime = time.time()
- 
-        #Save time of arrival
-        while GPIO.input(self.GPIO_ECHO) == 1:
-            stopTime = time.time()
- 
-        #Time difference between start and arrival
-        timeElapsed = stopTime - startTime
-        #Multiply with the sonic speed (34300 cm/s) and divide by 2, because there and back
-        measuredDistance = (timeElapsed * 34300) / 2
- 
-        return measuredDistance
+
 
     def detectObject(self,frame):
         #==========================================================================================================
@@ -173,7 +139,7 @@ class ObjectDetector():
         
         #Measure the distance
         #if condition satisfies run detectObject() and return magnitude; if not return as -1
-        measuredDistance = ObjectDetector.measureDistance(self)
+        measuredDistance = self.ultrasonicSensor.measureDistance(self)
         if(measuredDistance<=self.minimumDistance):
             manipulatedFrame = ObjectDetector.detectObject(self,frame)
             magnitude = ObjectDetector.getObjectPosition(self,manipulatedFrame)

@@ -32,6 +32,7 @@ class AutonomousMode(object):
         self.servoControl = sc.ServoControl()
         #self.objectDetector = od.ObjectDetector()
         AutonomousMode.run(self)
+        self.count = 0
 
     def run(self):
         '''
@@ -40,15 +41,33 @@ class AutonomousMode(object):
         '''
         lanedetector = ld.LaneDetector()
         while(True):
-            p1,p2,p3 = lanedetector.getLaneParameters()
-            print(str(p1)+" ; "+str(p2)+" ; "+str(p3))
-            #lanedetector.showFrame("AnnotedFrame")
-            #lanedetector.waitKey()
-            #Get undistorted frame. Run objectDetector
-            frame = lanedetector.getUndistortedFrame()
-            magnitude = self.objectDetector.run(frame)
-        #Use motor and servo control algorithm to find steering angle and motor thrust.
-        #Use 4 parameters:p1, p2, p3, and magnitude. Magnitude value overrules steering angle.
+            radiusLeft,radiusRight,deviation = lanedetector.getLaneParameters()
+            if not(radiusLeft==0 and radiusRight==0 and deviation==0):
+                print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
+                #lanedetector.showFrame("AnnotedFrame")
+                #lanedetector.waitKey()
+                #Get undistorted frame. Run objectDetector
+                #frame = self.objectDetector.getUndistortedFrame()
+                #magnitude = self.objectDetector.run(frame)
+                #Use motor and servo control algorithm to find steering angle and motor thrust.
+                #Use 4 parameters:p1, p2, p3, and magnitude. Magnitude value overrules steering angle.
+                if(magnitude==-1):
+                    latError = deviation
+                    self.motorControl.speedNegotiation(radius,v_target,v_current)
+                    self.servoControl.steerAngleControl(speed,k,angleDif,latError)
+                else:
+                    #Overrule magnitude value.
+                    latError = deviation - magnitude
+                    self.motorControl.speedNegotiation(radius,v_target,v_current)
+                    self.servoControl.steerAngleControl(speed,k,angleDif,latError)
+            else:
+                count = AutonomousMode.errorCounter(self)
+                if(count>=10):
+                    #This is the case when the car gets out of the lane.
+                    value = 50
+                    motorControl.backwardMotor(value)
+                    AutonomousMode.resetCounter(self)
+
         #Use MotorControl.py and ServoControl.py controlling
             
     #Mutators
@@ -57,5 +76,9 @@ class AutonomousMode(object):
 
     #Methods
 
+    def errorCounter(self):
+        self.count += 1
+        return self.count
 
-
+    def resetCounter(self):
+        self.count = 0

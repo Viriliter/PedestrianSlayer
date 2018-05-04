@@ -37,6 +37,15 @@
     <Compile Include="ImageProcessing\ProcessHandler.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Sensors\IMU.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sensors\SpeedSensor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sensors\UltrasonicSensor.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="System\Reboot.py">
       <SubType>Code</SubType>
     </Compile>

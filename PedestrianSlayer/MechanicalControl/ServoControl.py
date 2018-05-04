@@ -72,7 +72,7 @@ class ServoControl(object):
         Gets motor speed from speed sensor(s). Converts to car speed.
         '''
 
-    def steerAngleControl(void,speed,k,angleDif,latError):
+    def steerAngleControl(self,speed,k,angleDif,latError):
         '''
         Uses Stanley Method for steering angle control according to path radius.
         "latError" is deviation from center line of the path.
