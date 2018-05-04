@@ -1,5 +1,6 @@
 from Communication import ArduinoCommunication as ac
 from Communication import Mavlink as ml
+import math
 
 class MotorControl(object):
     '''
@@ -74,5 +75,24 @@ class MotorControl(object):
             return -1
 
     #MotorInput
+    
+    def getIdealSpeed(self,radius):
+        #Friction coefficient(between 0.1-0.16)
+        nu = 0.13
+        #Gravitiy constant
+        g = 9.81
+        #Curvature information
+        k=1/radius
+        #Calculate ideal speed
+        idealSpeed = math.sqrt((e+nu)*g/k)
+        return idealSpeed
 
-    #PWM Generator
+    def speedNegotiation(self,radius,targetSpeed,currentSpeed):
+        #Deceleration  value
+        a = 2   #m/s^2
+        #Calculate Trigger distance
+        d_trig =(targetSpeed*targetSpeed-currentSpeed*currentSpeed)/(2*a)
+        #Get ideal Speed
+        idealSpeed = MotorControl.getIdealSpeed(self,radius)
+        if(currentSpeed>idealSpeed):
+            if(idealSpeed==v_c):

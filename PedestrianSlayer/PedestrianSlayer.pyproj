@@ -31,6 +31,9 @@
     <Compile Include="Communication\UserCommunication.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ImageProcessing\ObjectDetector.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ImageProcessing\ProcessHandler.py">
       <SubType>Code</SubType>
     </Compile>

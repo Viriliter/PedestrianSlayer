@@ -1,4 +1,5 @@
 from ImageProcessing import LaneDetector as ld
+from ImageProcessing import ObjectDetector as od
 from MechanicalControl import MotorControl as mc
 from MechanicalControl import ServoControl as sc
 
@@ -29,7 +30,7 @@ class AutonomousMode(object):
         '''
         self.motorControl = mc.MotorControl()
         self.servoControl = sc.ServoControl()
-
+        #self.objectDetector = od.ObjectDetector()
         AutonomousMode.run(self)
 
     def run(self):
@@ -43,10 +44,11 @@ class AutonomousMode(object):
             print(str(p1)+" ; "+str(p2)+" ; "+str(p3))
             #lanedetector.showFrame("AnnotedFrame")
             #lanedetector.waitKey()
-        #Take input from LaneDetector class
-        #Take input from sensors
-        #Combine these inputs and send them to NeuralNetwork class.
-        #NeuralNetwork class will give 2 outputs: Motor PWM and Servo PWM
+            #Get undistorted frame. Run objectDetector
+            frame = lanedetector.getUndistortedFrame()
+            magnitude = self.objectDetector.run(frame)
+        #Use motor and servo control algorithm to find steering angle and motor thrust.
+        #Use 4 parameters:p1, p2, p3, and magnitude. Magnitude value overrules steering angle.
         #Use MotorControl.py and ServoControl.py controlling
             
     #Mutators

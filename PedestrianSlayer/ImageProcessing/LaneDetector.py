@@ -70,6 +70,9 @@ class LaneDetector():
     #region 
     def getFrame(self):
         return self.frame
+    
+    def getUndistortedFrame(self):
+        return self.undistorted
 
     def getResolutionValue(self):
         return self.resolutionValue
@@ -402,8 +405,7 @@ class LaneDetector():
                                         np.average(r_params,0,weights[-len(l_params):]),
                                         np.average(l_radius,0,weights[-len(l_params):]),
                                         np.average(r_radius,0,weights[-len(l_params):]))
-        return annotatedFrame
-        
+        return annotatedFrame      
 
     def showLaneParameters(self):
         return (getLeftFit(self),

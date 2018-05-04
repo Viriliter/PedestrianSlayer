@@ -1,5 +1,6 @@
 from Communication import ArduinoCommunication as ac
 from Communication import Mavlink as ml
+import math
 
 class ServoControl(object):
     '''
@@ -60,4 +61,26 @@ class ServoControl(object):
             return True
         except:
             return False
+    
+    def smoothPath(self):
+        '''
 
+        '''
+    
+    def getCarSpeed(self):
+        '''
+        Gets motor speed from speed sensor(s). Converts to car speed.
+        '''
+
+    def steerAngleControl(void,speed,k,angleDif,latError):
+        '''
+        Uses Stanley Method for steering angle control according to path radius.
+        "latError" is deviation from center line of the path.
+        "angleDif" is angle difference between center line and car orientation
+        '''
+        #Gain Constant
+        k = 0.02
+        #Get car speed
+        ServoControl.getCarSpeed(self)
+        steeringAngle = angleDif + math.atan(k*latError/speed)
+        return steeringAngle
