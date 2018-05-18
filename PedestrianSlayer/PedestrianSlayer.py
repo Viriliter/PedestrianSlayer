@@ -16,14 +16,10 @@ Use UserCommunication.py for initial driving choice(manual/autonomous modes)
 class PedestrianSlayer(object):
     def __init__(self):
         self.modeSelection = False       #True:Manuel False:Autonomous driving modes
-        self.isSelectionChanged= True
         PedestrianSlayer.run(self)
-
-    def setIsSelectionChanged(self,isSelectionChanged):
-        self.isSelectionChanged = isSelectionChanged
     
-    def changeSelection(self):
-        setIsSelectionChanged(self,True)
+    def setModeSelection(self,mode):
+        self.modeSelection = mode
     
     def captureModeSelection(self):
         '''
@@ -34,20 +30,19 @@ class PedestrianSlayer(object):
 
     def run(self):
         while(True):
-            if(self.isSelectionChanged):
-                if(self.modeSelection ):
-                    manuelmode = mm.ManuelMode()
-                    manuelmode.run()
-                    PedestrianSlayer.setIsSelectionChanged(self,False)
-                elif not(self.modeSelection):
-
-                    automode = am.AutonomousMode()
-                    automode.run()
-                    PedestrianSlayer.setIsSelectionChanged(self,False)
-            '''
-            There will be if statement to capture user change.
-            And then value of isSlectionChanged is setted to true.
-            CaptureModeSelection function will be used at there.
-            '''
+            if(self.modeSelection ):
+                manuelMode = mm.ManuelMode()
+                while (True):
+                    isExit = manuelMode.run()
+                    if(isExit):
+                        PedestrianSlayer.setModeSelection(self,False)
+                        break
+            elif not(self.modeSelection):
+                autoMode = am.AutonomousMode()
+                while (True):
+                    isExit = autoMode.run()
+                    if(isExit):
+                        PedestrianSlayer.setModeSelection(self,True)
+                        break
 
 

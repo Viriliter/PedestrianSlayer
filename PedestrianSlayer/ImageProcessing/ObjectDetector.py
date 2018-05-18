@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import time
 import math
-from Sensors import UltrasonicSensor
+#from Sensors import UltrasonicSensor
 
 
 class ObjectDetector():
@@ -24,6 +24,9 @@ class ObjectDetector():
     #Mutators
 
     #region
+    def setMinimumDistance(self,dist):
+        self.minimumDistance = dist
+
     def setFrame(self, frame):
         self.frame = frame
 
@@ -57,7 +60,10 @@ class ObjectDetector():
     #endregion
 
     #Accessors 
-    #region 
+    #region
+    def getMinimumDistance(self):
+        return self.minimumDistance
+    
     def getFrame(self):
         return self.frame
 

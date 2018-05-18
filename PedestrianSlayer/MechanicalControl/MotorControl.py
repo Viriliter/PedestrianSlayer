@@ -1,6 +1,6 @@
 from Communication import ArduinoCommunication as ac
 from Communication import Mavlink as ml
-from Sensors import SpeedSensor
+#from Sensors import SpeedSensor
 import math
 
 class MotorControl(object):
@@ -15,7 +15,7 @@ class MotorControl(object):
         self.payload = None
         self.mavlink = ml.Mavlink()
         self.serial = ac.ArduinoCommunication()
-        self.speedSensor = SpeedSensor.SpeedSensor()
+        #self.speedSensor = SpeedSensor.SpeedSensor()
 
     #Mutators
     def setPayload(self,payload):

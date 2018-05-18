@@ -1,7 +1,20 @@
 from ImageProcessing import LaneDetector as ld
 from ImageProcessing import ObjectDetector as od
+from ImageProcessing import CascadeClassifier as cc
 from MechanicalControl import MotorControl as mc
 from MechanicalControl import ServoControl as sc
+import threading
+
+class myThread(threading.Thread):
+    def __init__(self, threadID, name, counter):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.counter = counter
+        if(threadID==1):
+            AutonomousMode.run(self)
+        if(threadID==2):
+            AutonomousMode.getInput(self)
 
 class AutonomousMode(object):
     '''
@@ -31,8 +44,18 @@ class AutonomousMode(object):
         self.motorControl = mc.MotorControl()
         self.servoControl = sc.ServoControl()
         #self.objectDetector = od.ObjectDetector()
-        AutonomousMode.run(self)
+        #self.cascadeClassifier = cc.CascadeClassifier()
         self.count = 0
+        self.user_input = None
+        # Create new threads
+        threadRun = myThread(1, "Thread-1", 1)
+        threadInput = myThread(2, "Thread-2", 2)
+        threadRun.start()
+        threadInput.start()
+        #AutonomousMode.run(self)
+    
+    def getInput(self):
+        self.user_input = input()
 
     def run(self):
         '''
@@ -44,30 +67,36 @@ class AutonomousMode(object):
             radiusLeft,radiusRight,deviation = lanedetector.getLaneParameters()
             if not(radiusLeft==0 and radiusRight==0 and deviation==0):
                 print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
-                #lanedetector.showFrame("AnnotedFrame")
-                #lanedetector.waitKey()
+                lanedetector.showFrame("AnnotedFrame")
+                lanedetector.waitKey()
                 #Get undistorted frame. Run objectDetector
-                #frame = self.objectDetector.getUndistortedFrame()
+                frame = self.objectDetector.getUndistortedFrame()
                 #magnitude = self.objectDetector.run(frame)
+                magnitude=-1
                 #Use motor and servo control algorithm to find steering angle and motor thrust.
                 #Use 4 parameters:p1, p2, p3, and magnitude. Magnitude value overrules steering angle.
-                if(magnitude==-1):
-                    latError = deviation
-                    self.motorControl.speedNegotiation(radius,v_target,v_current)
-                    self.servoControl.steerAngleControl(speed,k,angleDif,latError)
-                else:
+                #if(magnitude==-1):
+                #    latError = deviation
+                #    self.motorControl.speedNegotiation(radius,v_target,v_current)
+                #    self.servoControl.steerAngleControl(speed,k,angleDif,latError)
+                #else:
                     #Overrule magnitude value.
-                    latError = deviation - magnitude
-                    self.motorControl.speedNegotiation(radius,v_target,v_current)
-                    self.servoControl.steerAngleControl(speed,k,angleDif,latError)
+                #    latError = deviation - magnitude
+                #    self.motorControl.speedNegotiation(radius,v_target,v_current)
+                #    self.servoControl.steerAngleControl(speed,k,angleDif,latError)
+                
+                if(self.user_input=="e"):
+                    break
             else:
                 count = AutonomousMode.errorCounter(self)
-                if(count>=10):
+                if(self.count>=10):
                     #This is the case when the car gets out of the lane.
                     value = 50
                     motorControl.backwardMotor(value)
                     AutonomousMode.resetCounter(self)
-
+                if(self.user_input=="e"):
+                    break
+        return True
         #Use MotorControl.py and ServoControl.py controlling
             
     #Mutators

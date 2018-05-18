@@ -20,8 +20,11 @@ class ManuelMode():
         self.motorControl = mc.MotorControl()
         self.servoControl = sc.ServoControl()
         #self.userCom = uc.UserCommunication()
-        isUserInterrupt = False
-        
+        self.isUserInterrupt = False
+        self.userInput = None
+        self.angle = 110
+        self.cycle = 10
+
     #Mutators
 
     #Accessors
@@ -53,27 +56,52 @@ class ManuelMode():
         self.motorControl.backwardMotor(value)
 
 
-    def testCommunication(self):
+    def run(self):
         try:
-            while(1):
-                ManuelMode.stopMotor(self)
-                
-                ManuelMode.forwardMotor(self)
-                
-                ManuelMode.stopMotor(self)
-                
-                ManuelMode.backwardMotor(self)
-        except KeyboardInterrupt:
-            raise
- 
-    '''
-    def activate(self):
-        while not(isUserInterrupt):
-            address,value = self.userCom.read()
-            if(address==None):
-                isUserInterrupt=False
-            else:
-                isUserInterrupt=True
-                ManuelMode.interpreter(address,value)
-    '''
+            while(True):
+                #Get Keyboard input from the user
+                self.userInput = input()
+                #Classify the input and run
+                self.isisUserInterrupt = ManuelMode.inputClassifier(self,self.userInput)
+                if(self.isUserInterrupt):
+                    #Exit from manuel mode
+                    return True
+        except Exception:
+            pass
+    
+    def inputClassifier(self,input):
+        '''
+        According to keyboard input, corresponding motor and servo control is implemented.
+        '''
+        if(input=="e"):     #Exit command
+            return True
+        elif(input=="w"):       #Forward command
+            if(self.cycle<=100):
+                self.cycle = self.cycle+10
+                sleep(0.3)
+            self.motorControl.forwardMotor(self.cycle)
+            return False
+        elif(input=="a"):       #Left command
+            if(self.angle<=150):
+                self.angle = self.angle+10
+                sleep(0.3)
+            self.servoControl.angle(self.angle)
+            return False
+        elif(input=="s"):       #Backward command
+            if(self.cycle>=10):
+                self.cycle = self.cycle-10
+                sleep(0.3)
+            self.motorControl(self.cycle)
+            return False
+        elif(input=="d"):       #Right command
+            if(self.angle>=50):
+                self.angle = self.angle+10
+                sleep(0.3)
+            self.servoControl.angle(self.angle)
+            return False
+        elif(input==" "):       #Stop command
+            self.motorControl.stopMotor(cycle)
+            sleep(0.3)
+            return False
+
     

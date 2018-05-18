@@ -31,6 +31,15 @@
     <Compile Include="Communication\UserCommunication.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Extras\LightControl.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extras\SoundControl.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ImageProcessing\CascadeClassifier.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ImageProcessing\ObjectDetector.py">
       <SubType>Code</SubType>
     </Compile>
@@ -53,9 +62,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ImageProcessing\Line.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ImageProcessing\RoadSignDetector.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Main\AutonomousMode.py">
@@ -84,6 +90,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Tests\CommunicationTest.py" />
+    <Compile Include="Tests\SoundTest.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Arduino Code\" />
@@ -97,6 +104,7 @@
     <Folder Include="Main\" />
     <Folder Include="MechanicalControl\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\Arduino Code\" />
+    <Folder Include="Extras\" />
     <Folder Include="Tests\" />
     <Folder Include="Sensors\" />
     <Folder Include="System\" />

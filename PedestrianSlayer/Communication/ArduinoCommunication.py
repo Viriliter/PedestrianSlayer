@@ -18,7 +18,11 @@ class ArduinoCommunication(object):
         self.write_timeout = write_timeout
         self.isDataSended = True
         #self.serialCom = serial.Serial(self.portName,self.baudrate,self.bytesize,self.parity,self.stopbits,timeout,write_timeout=self.write_timeout)
-        self.timer = 0
+        #if(self.serialCom.isOpen()==False):
+        #    self.serialCom.open()
+        #else:
+        #    ArduinoCommunication.refresh()
+        #self.timer = 0
 
     #Mutators
     #region
@@ -78,10 +82,9 @@ class ArduinoCommunication(object):
 
     def sendData(self,data):
         time.sleep(0.2)
-        #self.serial.inWaiting()
+        #self.serialCom.flush()
         self.serialCom.write(data)
-        self.serial.inWaiting()
-        #time.sleep(0.5)
+        self.serialCom.flush()
         raise Exception
         while(ArduinoCommunication.isAcknowledged(self)):
             time.sleep(0.05)
@@ -105,6 +108,8 @@ class ArduinoCommunication(object):
         self.timer = 0
         
     def getData(self,byte_size = 8):
+        self.serialCom.flush()
         data = self.serialCom.read(byte_size)
+        self.serialCom.reset_input_buffer()
         return data
         
