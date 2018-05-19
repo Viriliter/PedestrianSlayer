@@ -30,7 +30,7 @@ numpy
 scipy
 ```
 ### Installing
-Write following command to setup the algorithm on Raspberry Pi:
+Write following command on the terminal to setup the algorithm on Raspberry Pi:
 ```
 git clone https://github.com/Viriliter/PedestrianSlayer/
 ```
