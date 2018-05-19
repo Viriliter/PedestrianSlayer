@@ -9,26 +9,36 @@ The car simply has two modes: Manuel and autonomous. In manuel mode, the user wi
 
 ### Prerequisites
 #### Hardware:
+Following hardwares were used for this project but alternative ones could be used.
 ```
+Reedy RC car chasis
 Raspberry Pi 3 B+
 Arduino Uno
 Raspberry Pi Camera v2.1
 MPU 6050
-Ultrasonic Sensor
+HC-SR04 Ultrasonic Sensor
+Speed Sensor
 Servo Motor
-DC Brushed Motor
-ESC
+HIMOTO RC540 Brushed Motor
+Axial AE-2 ESC
 ```
 #### Software:
+Following dependicies should be installed before running the code.
 ```
 OpenCV
+numpy
+scipy
 ```
 ### Installing
-
+Write following command to setup the algorithm on Raspberry Pi:
+```
+git clone https://github.com/Viriliter/PedestrianSlayer/
+```
 ## Project
-
+Diagram shows an overview of schematic of the main code:
+![alt text](https://raw.githubusercontent.com/Viriliter/PedestrianSlayer/branch/path/to/img.png)
 ## Goals
-
+The goal of the project is establish a rc car that follows the lines on the road. Additionally, it is requested to detect the obstacle on road and avoid them using new route. In the meantime, it will detect the stop sign and stop within 10cm distance.
 ## Running the tests
 
 ## Contributing
@@ -36,6 +46,7 @@ OpenCV
 ## Versioning
 
 ## Authors
+Mert Limoncuoğlu
 
 ## Acknowledgments
 Some parts of the lane detection algorithm are adopted by darienmt. For more details,
