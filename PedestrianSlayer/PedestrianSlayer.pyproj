@@ -101,6 +101,7 @@
     <Folder Include="Communication\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\System\" />
     <Folder Include="ImageProcessing\" />
+    <Folder Include="ImageProcessing\HaarCascade\" />
     <Folder Include="Main\" />
     <Folder Include="MechanicalControl\" />
     <Folder Include="C:\Users\ASUS\Desktop\ME384ProjectCode\PedestrianSlayer\PedestrianSlayer\Arduino Code\" />
@@ -111,6 +112,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Arduino Code\ArduinoMainCode\ArduinoMainCode.ino" />
+    <Content Include="ImageProcessing\HaarCascade\1.jpg" />
+    <Content Include="ImageProcessing\HaarCascade\StopSign_HAAR.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

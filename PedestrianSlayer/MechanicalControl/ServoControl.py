@@ -1,5 +1,6 @@
 from Communication import ArduinoCommunication as ac
 from Communication import Mavlink as ml
+from Sensors import IMU
 import math
 
 class ServoControl(object):
@@ -13,6 +14,9 @@ class ServoControl(object):
         self.payload = None
         self.mavlink = ml.Mavlink()
         self.serial = ac.ArduinoCommunication()
+        self.imu = IMU.IMU()
+        self.oldOrient = 0
+        self.oldLatError = 0
     
     #Mutators
     def setPayload(self,payload):
@@ -72,7 +76,23 @@ class ServoControl(object):
         Gets motor speed from speed sensor(s). Converts to car speed.
         '''
 
-    def steerAngleControl(self,speed,k,angleDif,latError):
+    def getCarOrient(self):
+        '''
+        Gets car orientation using IMU sensor
+        '''
+        (x,y,z) = self.imu.getOrientation()
+        return z
+        
+    def getAngleDif(self,d_theta,d_latError,latError):
+        '''
+        It calculates the angle difference between center line and car orientation.
+        Returns the value.
+        '''
+        angleDif = (math.asin((d_latError*sin(d_theta)+2*latError*sin(d_theta))/(d_latError))-d_theta)/2
+
+        return angleDif
+        
+    def steerAngleControl(self,latError,k=0.02):
         '''
         Uses Stanley Method for steering angle control according to path radius.
         "latError" is deviation from center line of the path.
@@ -80,7 +100,24 @@ class ServoControl(object):
         '''
         #Gain Constant
         k = 0.02
+        
         #Get car speed
-        ServoControl.getCarSpeed(self)
+        speed = ServoControl.getCarSpeed(self)
+        
+        #Get orientation rate & update old orientation value
+        newOrient = ServoControl.getCarOrient(self)
+        d_theta = (newOrient-self.oldOrient)
+        self.oldOrient = newOrient
+        
+        #Get lateral deviation from center line rate & update old deviation value
+        newLatError = latError
+        d_latError = newLatError-self.oldLatError
+        self.oldLatError = newLatError
+        
+        #Get angle difference between center line and car orientation
+        angleDif = ServoControl.angleDif(self,d_theta,d_latError,latError)
+        
+        #Calculate steering angle
         steeringAngle = angleDif + math.atan(k*latError/speed)
+
         return steeringAngle

@@ -131,8 +131,25 @@ class LaneDetector():
         self.height = height
         self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
         self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
-    
-    def CreateTrapzoid(self, frame, bottomWidth, upperWidth, height, xbias=0, ybias=0):
+
+    def resizeFrame(self,frame,fx=0.5,fy=0.5):
+        '''
+        Resize the frame to defined size
+        '''
+        return cv2.resize(frame, None,fx=0.5, fy=0.5, interpolation = cv2.INTER_AREA )
+
+    def colorFilter(self,frame):
+        '''
+        Applies predefiened color filter to frame
+        '''
+        #Create white line mask
+        lowerW = np.uint8([150, 150, 150])
+        upperW = np.uint8([255, 255, 255])
+        #Apply mask on the frame
+        maskedFrame = cv2.inRange(frame,lowerW,upperW)
+        return maskedFrame
+
+    def createTrapzoid(self, frame, bottomWidth, upperWidth, height, xbias=0, ybias=0):
         frame_size = (frame.shape[1],frame.shape[0])
         self.src = np.array([[frame_size[0]/2-upperWidth/2+xbias,frame_size[1]-height+ybias],[frame_size[0]/2+upperWidth/2+xbias,frame_size[1]-height+ybias],[frame_size[0]/2+bottomWidth/2+xbias,frame_size[1]+ybias],[frame_size[0]/2-bottomWidth/2+xbias,frame_size[1]+ybias]],np.float32)
         #dst = np.array([[frame_size[0]/2-BottomWidth/2,0], [frame_size[0]/2+BottomWidth/2,0], [frame_size[0]/2+BottomWidth/2,Height] , [frame_size[0]/2-BottomWidth/2,Height]  ],np.float32)
@@ -145,7 +162,7 @@ class LaneDetector():
     def warpPerspective(self, frame):
         frame_size = (frame.shape[1],frame.shape[0])
     
-        LaneDetector.CreateTrapzoid(self, frame, 570, 220, 100)
+        LaneDetector.createTrapzoid(self, frame, 570, 220, 100)
         M = cv2.getPerspectiveTransform(self.src,self.dst)
         #M = np.fliplr([M])[0]
         
@@ -154,7 +171,7 @@ class LaneDetector():
     def iWarpPerspective(self, frame):
         frame_size = (frame.shape[1],frame.shape[0])
     
-        LaneDetector.CreateTrapzoid(self, frame,570,220,100)
+        LaneDetector.createTrapzoid(self, frame,570,220,100)
         M = cv2.getPerspectiveTransform(self.dst,self.src)
         #M = np.fliplr([M])[0]
         
@@ -424,7 +441,7 @@ class LaneDetector():
             self.cap.release()
             cv2.destroyAllWindows()
 
-    def release(self):
+    def releaseCapture(self):
             self.cap.release()
             cv2.destroyAllWindows()
 
@@ -446,18 +463,28 @@ class LaneDetector():
     #Main Method
     def getLaneParameters(self):
         '''
-        This method runs the LaneDetector class.
+        This method runs lane detection algorithm. Detects lines and returns road parameters.
+        It passes all parameters as zero as the algorithm cannot read the lines on road.
         '''
         if(self.cap.isOpened()):
             try:
+                #Read frame
                 self.ret, self.frame = self.cap.read()
 
                 self.undistorted = self.frame
 
+                #Resize the frame
+                resizedFrame = LaneDetector.resizeFrame(self,self.frame)
+
+                #Apply color filter to the frame
+                filteredFrame = LaneDetector.colorFilter(self,resizedFrame)
+                
                 #cv2.imshow('Undistorted',self.undistorted)
 
-                canny = cv2.Canny(self.undistorted,200,255)
-            
+                #Apply canny algorithm to detect lines
+                canny = cv2.Canny(filteredFrame,200,255)
+                
+                #Change perspective view
                 self.warpedFrame = LaneDetector.warpPerspective(self, canny)
             
                 #cv2.imshow('Canny',self.warpedFrame)
@@ -466,14 +493,14 @@ class LaneDetector():
             
                 #cv2.imshow('Masked',self.annotatedFrame)
                 return (self.left_curverad,self.right_curverad,self.offset)
+            
             except:
                 self.prevErrorCnt=self.errorCnt
                 self.errorCnt= self.errorCnt+1
                 #print(str(self.errorCnt)+" of Error in reading")
                 return (0,0,0)
         # When everything done, release the capture
-        self.cap.release()
-        cv2.destroyAllWindows()
+        LaneDetector.releaseCapture()
 
 
 

@@ -1,6 +1,8 @@
+import cv2
+
 class CascadeClassifier(object):
     def __init__(self):
-        self.StopPath = None
+        self.StopPath = '/HaarCascade/StopSign_HAAR.xml'
 
     def getStopPath(self):
         return self.StopPath
@@ -10,7 +12,12 @@ class CascadeClassifier(object):
 
     def detectStopSign(self,frame):
         classifier = cv2.CascadeClassifier(self.StopPath)
-        stop_signs = classifier.detectMultiScale(frame, 1.02, 10)
+        stop_signs = classifier.detectMultiScale(
+                    frame,
+                    scaleFactor=1.1,
+                    minNeighbors=5,
+                    minSize=(100,100)
+                    )
         print(stop_signs)
 
     

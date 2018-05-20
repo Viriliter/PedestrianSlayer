@@ -357,6 +357,26 @@ void blinkLEDTest(int i)
 }
 //End Region
 
+void generalMotorTest()
+{
+	for(int step=0 ; step<100 ; step=step+10)
+	{
+		motorPWM(0+step);
+		servoAngle(110-step*0,3)
+		delay(400);
+	}
+	for(int step=0 ; step<100 ; step=step+10)
+	{
+		motorPWM(0+step);
+		servoAngle(110+step*0,3)
+		delay(400);
+	}
+	motorPWM(50);
+	servoAngle(110);
+	delay(1000);
+	motorPWM(0);
+}
+
 //===========================
 // Main Loop
 //===========================

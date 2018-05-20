@@ -57,6 +57,7 @@ class AutonomousMode(object):
     def getInput(self):
         self.user_input = input()
 
+
     def run(self):
         '''
         Initialize LaneDetector.py and RoadSignDetector.py
