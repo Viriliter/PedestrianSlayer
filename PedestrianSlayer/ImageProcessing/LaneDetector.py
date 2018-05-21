@@ -474,15 +474,15 @@ class LaneDetector():
                 self.undistorted = self.frame
 
                 #Resize the frame
-                resizedFrame = LaneDetector.resizeFrame(self,self.frame)
+                #resizedFrame = LaneDetector.resizeFrame(self,self.frame)
 
                 #Apply color filter to the frame
-                filteredFrame = LaneDetector.colorFilter(self,resizedFrame)
+                #filteredFrame = LaneDetector.colorFilter(self,resizedFrame)
                 
                 #cv2.imshow('Undistorted',self.undistorted)
 
                 #Apply canny algorithm to detect lines
-                canny = cv2.Canny(filteredFrame,200,255)
+                canny = cv2.Canny(self.undistorted,200,255)
                 
                 #Change perspective view
                 self.warpedFrame = LaneDetector.warpPerspective(self, canny)

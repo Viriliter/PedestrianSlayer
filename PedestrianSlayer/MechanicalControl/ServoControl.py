@@ -1,6 +1,6 @@
 from Communication import ArduinoCommunication as ac
 from Communication import Mavlink as ml
-from Sensors import IMU
+#from Sensors import IMU
 import math
 
 class ServoControl(object):
@@ -14,7 +14,7 @@ class ServoControl(object):
         self.payload = None
         self.mavlink = ml.Mavlink()
         self.serial = ac.ArduinoCommunication()
-        self.imu = IMU.IMU()
+        #self.imu = IMU.IMU()
         self.oldOrient = 0
         self.oldLatError = 0
     

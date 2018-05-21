@@ -3,18 +3,7 @@ from ImageProcessing import ObjectDetector as od
 from ImageProcessing import CascadeClassifier as cc
 from MechanicalControl import MotorControl as mc
 from MechanicalControl import ServoControl as sc
-import threading
-
-class myThread(threading.Thread):
-    def __init__(self, threadID, name, counter):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.counter = counter
-        if(threadID==1):
-            AutonomousMode.run(self)
-        if(threadID==2):
-            AutonomousMode.getInput(self)
+import time
 
 class AutonomousMode(object):
     '''
@@ -48,11 +37,7 @@ class AutonomousMode(object):
         self.count = 0
         self.user_input = None
         # Create new threads
-        threadRun = myThread(1, "Thread-1", 1)
-        threadInput = myThread(2, "Thread-2", 2)
-        threadRun.start()
-        threadInput.start()
-        #AutonomousMode.run(self)
+        AutonomousMode.run(self)
     
     def getInput(self):
         self.user_input = input()
@@ -65,13 +50,16 @@ class AutonomousMode(object):
         '''
         lanedetector = ld.LaneDetector()
         while(True):
+            millis1 = int(round(time.time() * 1000))
             radiusLeft,radiusRight,deviation = lanedetector.getLaneParameters()
+            millis2 = int(round(time.time() * 1000))
+            print (millis2-millis1)
             if not(radiusLeft==0 and radiusRight==0 and deviation==0):
-                print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
+                #print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
                 lanedetector.showFrame("AnnotedFrame")
                 lanedetector.waitKey()
                 #Get undistorted frame. Run objectDetector
-                frame = self.objectDetector.getUndistortedFrame()
+                #frame = self.objectDetector.getUndistortedFrame()
                 #magnitude = self.objectDetector.run(frame)
                 magnitude=-1
                 #Use motor and servo control algorithm to find steering angle and motor thrust.
@@ -93,7 +81,7 @@ class AutonomousMode(object):
                 if(self.count>=10):
                     #This is the case when the car gets out of the lane.
                     value = 50
-                    motorControl.backwardMotor(value)
+                    #motorControl.backwardMotor(value)
                     AutonomousMode.resetCounter(self)
                 if(self.user_input=="e"):
                     break

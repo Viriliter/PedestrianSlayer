@@ -21,12 +21,13 @@ class IMU():
         self.address = 0x68  # This is the address value read via the i2cdetect command
 
     def getAccel(self):
+        pass
     
     def getGlobalAccel(self):
+        pass
 
     def getOrientation(self):
-
-
+        pass
 
     def read_all():
         raw_gyro_data = bus.read_i2c_block_data(self.address, 0x43, 6)
@@ -63,7 +64,7 @@ class IMU():
     def get_x_rotation(x,y,z):
         radians = math.atan2(y, dist(x,z))
         return math.degrees(radians)
-
+'''
 bus = smbus.SMBus(0)  # or bus = smbus.SMBus(1) for Revision 2 boards
 
 # Now wake the 6050 up as it starts in sleep mode
@@ -117,4 +118,4 @@ for i in range(0, int(3.0 / time_diff)):
     last_x = K * (last_x + gyro_x_delta) + (K1 * rotation_x)
     last_y = K * (last_y + gyro_y_delta) + (K1 * rotation_y)
 
-    print "{0:.4f} {1:.2f} {2:.2f} {3:.2f} {4:.2f} {5:.2f} {6:.2f}".format( time.time() - now, (rotation_x), (gyro_total_x), (last_x), (rotation_y), (gyro_total_y), (last_y))
+    print ("{0:.4f} {1:.2f} {2:.2f} {3:.2f} {4:.2f} {5:.2f} {6:.2f}".format( time.time() - now, (rotation_x), (gyro_total_x), (last_x), (rotation_y), (gyro_total_y), (last_y)))
