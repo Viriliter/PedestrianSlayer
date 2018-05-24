@@ -31,10 +31,16 @@
     <Compile Include="Communication\UserCommunication.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Communication\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Extras\LightControl.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Extras\SoundControl.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extras\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ImageProcessing\CascadeClassifier.py">
@@ -46,6 +52,15 @@
     <Compile Include="ImageProcessing\ProcessHandler.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ImageProcessing\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MechanicalControl\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Sensors\IMU.py">
       <SubType>Code</SubType>
     </Compile>
@@ -53,6 +68,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Sensors\UltrasonicSensor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sensors\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="System\Reboot.py">
@@ -87,6 +105,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="System\Shutdown.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Tests\CommunicationTest.py" />
