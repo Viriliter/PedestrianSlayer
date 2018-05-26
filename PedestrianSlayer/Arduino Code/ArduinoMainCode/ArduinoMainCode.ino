@@ -2,8 +2,8 @@
 //Region Libraries
 //=====================
   //some libraries should be downloaded
-  //#include <Servo.h>
-  //#include <PID_v1.h>
+  #include <Servo.h>
+  #include <PID_v1.h>
 //=====================
 //Region Configuration Tab
 //=====================
@@ -11,9 +11,9 @@
   int yellowLED = 9;
   int blueLED = 10;
 
-  bool DIRECTION = True;            //set to forward direction
+  bool DIRECTION = true;            //set to forward direction
                                     //(false value is backward direction)
-  bool ISDIRECTIONCHANGED = False;
+  bool ISDIRECTIONCHANGED = false;
   
   //Motor Configuration
   int MOTOR_PIN = 9;
@@ -107,9 +107,9 @@ void setup() {
     if(Serial.available())
     {
       //delay(10);
-      PACKET_SIZE = data[1];
-      Serial.write(data[],PACKET_SIZE);
-      Serial.flush;
+      PACKET_SIZE = sizeof(data);//Get length of the transmitted data
+      Serial.write(data,PACKET_SIZE);
+      Serial.flush();
     } 
   }
   
@@ -143,10 +143,10 @@ void setup() {
                 /*
                 if(DIRECTION)
                 {
-                ISDIRECTIONCHANGED=False;
+                ISDIRECTIONCHANGED=false;
                 value = input[6];
                 }
-                else{DIRECTION=True;ISDIRECTIONCHANGED=True;}
+                else{DIRECTION=true;ISDIRECTIONCHANGED=true;}
                 */
               }
               else if(input[5]==0xFD)//Message ID:Backward
@@ -156,10 +156,10 @@ void setup() {
                 /*
                 if(!DIRECTION)
                 {
-                ISDIRECTIONCHANGED=False;
+                ISDIRECTIONCHANGED=false;
                 value = input[6];
                 }
-                else{DIRECTION=False;ISDIRECTIONCHANGED=TRUE;}
+                else{DIRECTION=false;ISDIRECTIONCHANGED=true;}
                 */
               }
             }
@@ -191,41 +191,44 @@ void setup() {
     //----------------------------
     //It converts payload to byte array according to its component,message IDs
     //----------------------------
-    _STARTFIELD = 0xFE;  //Start Field
-    _PAYLOADLENGTH = 0x04; //Payload Length Field
-    _PACKETSEQUENCE = 0x00;  //Packet Sequence Field
-    _CRC = 0xFF; //End Field
-    _PAYLOAD = Null;
+    byte _STARTFIELD = 0xFE;  //Start Field
+    byte _PAYLOADLENGTH = 0x04; //Payload Length Field
+    byte _PACKETSEQUENCE = 0x00;  //Packet Sequence Field
+    byte _COMPONENTID = 0x00;
+    byte _MESSAGEID = 0x00;
+    byte _PAYLOAD = 0x00;
+    byte _CRC = 0xFF; //End Field
     // systemID
-    _SYSTEMID = 0xFE;
+    byte _SYSTEMID = 0xFE;
     // componentID
     if(componentID=="MPU_ACCEL")
     {
-      _COMPONENTID = 0xFE;
-      if(messageID=="X"){_MESSAGEID = 0xFF; _PAYLOAD = payload;}
-      else if(messageID=="Y"){_MESSAGEID = 0xFE; _PAYLOAD = payload;}
-      else if(messageID=="Z"){_MESSAGEID = 0xFD; _PAYLOAD = payload;}
+      byte _COMPONENTID = 0xFE;
+      if(messageID=="X"){_MESSAGEID = 0xFF;_PAYLOAD = payload;}
+      else if(messageID=="Y"){_MESSAGEID = 0xFE;_PAYLOAD = payload;}
+      else if(messageID=="Z"){_MESSAGEID = 0xFD;_PAYLOAD = payload;}
     }
     else if(componentID=="MPU_ORIENT")
     {
-      _COMPONENTID = 0xFD;
-      if(messageID=="X"){_MESSAGEID = 0xFF; _PAYLOAD = payload;}
-      else if(messageID=="Y"){_MESSAGEID = 0xFE; _PAYLOAD = payload;}
-      else if(messageID=="Z"){_MESSAGEID = 0xFD; _PAYLOAD = payload;}
+      byte _COMPONENTID = 0xFD;
+      if(messageID=="X"){_MESSAGEID = 0xFF;_PAYLOAD = payload;}
+      else if(messageID=="Y"){_MESSAGEID = 0xFE;_PAYLOAD = payload;}
+      else if(messageID=="Z"){_MESSAGEID = 0xFD;_PAYLOAD = payload;}
     }
     else if(componentID=="ULTRASONIC")
     {
-      _COMPONENTID = 0xFF;
+      byte _COMPONENTID = 0xFF;
       if(messageID=="DISTANCE"){_MESSAGEID = 0xFF; _PAYLOAD = payload;}
     }
-    else if(componentID=="OPTICALNAVIGATOR")	//(It is optional and maybe won't be used.)
+    else if(componentID=="OPTICALNAVIGATOR")  //(It is optional and maybe won't be used.)
     {
-      _COMPONENTID = 0xFC;
+      byte _COMPONENTID = 0xFC;
       if(messageID=="X"){_MESSAGEID = 0xFF ;_PAYLOAD = payload;}
-      else if(messageID=="Y"){_MESSAGEID = 0xFE; _PAYLOAD = payload;}
+      else if(messageID=="Y"){_MESSAGEID = 0xFE;_PAYLOAD = payload;}
     }
-    data = {_STARTFIELD,_PAYLOADLENGTH,_PACKETSEQUENCE,_SYSTEMID,_COMPONENTID,_MESSAGEID,_PAYLOAD,_CRC};
-    return data
+    int data_length = int(_PAYLOADLENGTH)+7;
+    byte data[data_length] = {_STARTFIELD,_PAYLOADLENGTH,_PACKETSEQUENCE,_SYSTEMID,_COMPONENTID,_MESSAGEID,_PAYLOAD,_CRC};
+    return data[data_length];
   }
 
 
@@ -259,21 +262,21 @@ void setup() {
   void lightControl(int sequence)
   {
     //----------------------------
-	//It will control car lights.(It is optional and maybe won't be used.)
-	//----------------------------
+  //It will control car lights.(It is optional and maybe won't be used.)
+  //----------------------------
   }
   
 
   /* These will probably not used.
-	  void motorPID()
-	  {
+    void motorPID()
+    {
     
-	  }
+    }
   
-	  void servoPID()
-	  {
+    void servoPID()
+    {
     
-	  }
+    }
   */
 
 
@@ -359,22 +362,24 @@ void blinkLEDTest(int i)
 
 void generalMotorTest()
 {
-	for(int step=0 ; step<100 ; step=step+10)
-	{
-		motorPWM(0+step);
-		servoAngle(110-step*0,3)
-		delay(400);
-	}
-	for(int step=0 ; step<100 ; step=step+10)
-	{
-		motorPWM(0+step);
-		servoAngle(110+step*0,3)
-		delay(400);
-	}
-	motorPWM(50);
-	servoAngle(110);
-	delay(1000);
-	motorPWM(0);
+  for(int stepVal = 0 ; stepVal<100 ; stepVal = stepVal+10)
+  {
+    motorPWM(0+stepVal);
+                int angle = 110-stepVal*0.3;
+    servoAngle(angle);
+    delay(400);
+  }
+  for(int stepVal = 0 ; stepVal<100 ; stepVal = stepVal+10)
+  {
+    motorPWM(0+stepVal);
+    int angle = 110+stepVal*0.3;
+    servoAngle(angle);
+    delay(400);
+  }
+  motorPWM(50);
+  servoAngle(110);
+  delay(1000);
+  motorPWM(0);
 }
 
 //===========================

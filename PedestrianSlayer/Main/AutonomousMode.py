@@ -55,7 +55,7 @@ class AutonomousMode(object):
             millis2 = int(round(time.time() * 1000))
             print (millis2-millis1)
             if not(radiusLeft==0 and radiusRight==0 and deviation==0):
-                #print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
+                print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
                 lanedetector.showFrame("AnnotedFrame")
                 lanedetector.waitKey()
                 #Get undistorted frame. Run objectDetector

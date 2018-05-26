@@ -4,4 +4,9 @@
     <TargetProject>a418b9d0-2b7f-4ddb-b4a5-7b427e8f515b</TargetProject>
     <FriendlyName>PedestrianSlayer</FriendlyName>
   </ProjectTarget>
+  <Reports>
+    <Report>
+      <Filename>C:\Users\ASUS\AppData\Local\Temp\PedestrianSlayer_20180524.vsp</Filename>
+    </Report>
+  </Reports>
 </ProfilingTarget>

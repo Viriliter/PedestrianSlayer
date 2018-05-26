@@ -4,7 +4,7 @@ import time
 import threading
 from collections import deque
 from . import Line
-
+import warnings
 class LaneDetector():
     '''
     This class finds the road lines using warpPerspective and Canny method, and then
@@ -32,6 +32,7 @@ class LaneDetector():
         self.errorCnt = 0
         self.prevErrorCnt = 0
         self.captureVideo("")
+        warnings.simplefilter('ignore', np.RankWarning)
     #Mutators
     #region
     def setFrame(self, frame):
@@ -136,7 +137,7 @@ class LaneDetector():
         '''
         Resize the frame to defined size
         '''
-        return cv2.resize(frame, None,fx=0.5, fy=0.5, interpolation = cv2.INTER_AREA )
+        return cv2.resize(frame, None, fx, fy, interpolation = cv2.INTER_AREA )
 
     def colorFilter(self,frame):
         '''
@@ -234,51 +235,70 @@ class LaneDetector():
             if len(good_right_inds) > minpix:
                 rightx_current = np.int(np.mean(nonzerox[good_right_inds]))
 
-        # Concatenate the arrays of indices
-        left_lane_inds = np.concatenate(left_lane_inds)
-        right_lane_inds = np.concatenate(right_lane_inds)
-
-        # Extract left and right line pixel positions
-        leftx = nonzerox[left_lane_inds]
-        lefty = nonzeroy[left_lane_inds]
-        rightx = nonzerox[right_lane_inds]
-        righty = nonzeroy[right_lane_inds]  
-    
-        # Fit a second order polynomial to each
-        left_fit = np.polyfit(lefty, leftx, 2)
-        right_fit = np.polyfit(righty, rightx, 2)
-        #print(left_fit) # to measure tolerances
-        # Stash away polynomials
-        self.left_line.current_fit = left_fit
-        self.right_line.current_fit = right_fit
-    
         # Generate x and y values for plotting
         ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
-        left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-        right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
-    
-        out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
-        out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
-        out_img[ploty.astype('int'),left_fitx.astype('int')] = [0, 255, 255]
-        out_img[ploty.astype('int'),right_fitx.astype('int')] = [0, 255, 255]
+        # Calculate radii of curvature in meters
+        y_eval = np.max(ploty)  # Where radius of curvature is measured
 
+        
+        
+
+        
+        
         # Define conversions in x and y from pixels space to meters
         ym_per_pix = 30.0/720 # meters per pixel in y dimension
         xm_per_pix = 3.7/700 # meters per pixel in x dimension
 
-        # Fit new polynomials to x,y in world space
-        left_fit_cr = np.polyfit(lefty*ym_per_pix, leftx*xm_per_pix, deg=2)
-        right_fit_cr = np.polyfit(righty*ym_per_pix, rightx*xm_per_pix, deg=2)
+        try:
+            # Concatenate the arrays of indices
+            left_lane_inds = np.concatenate(left_lane_inds)
+            # Extract left and right line pixel positions
+            leftx = nonzerox[left_lane_inds]
+            lefty = nonzeroy[left_lane_inds]
+            # Fit a second order polynomial to each
+            left_fit = np.polyfit(lefty, leftx, 2)
+            # Stash away polynomials
+            self.left_line.current_fit = left_fit
+            # Generate x and y values for plotting
+            left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+            out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
+            out_img[ploty.astype('int'),left_fitx.astype('int')] = [0, 255, 255]
+            # Fit new polynomials to x,y in world space
+            left_fit_cr = np.polyfit(lefty*ym_per_pix, leftx*xm_per_pix, deg=2)
+            # Calculate radii of curvature in meters
+            left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
+             # Stash away the curvatures  
+            self.left_line.radius_of_curvature = left_curverad
+        except:
+            self.left_line.radius_of_curvature = 0
+            left_curverad = 0
+            pass
+        
+        try:
+            # Concatenate the arrays of indices
+            right_lane_inds = np.concatenate(right_lane_inds)
+            # Extract left and right line pixel positions
+            rightx = nonzerox[right_lane_inds]
+            righty = nonzeroy[right_lane_inds] 
+            # Fit a second order polynomial to each
+            right_fit = np.polyfit(righty, rightx, 2)
+            # Stash away polynomials
+            self.right_line.current_fit = right_fit
+            # Generate x and y values for plotting
+            right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+            out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
+            out_img[ploty.astype('int'),right_fitx.astype('int')] = [0, 255, 255]
+            # Fit new polynomials to x,y in world space
+            right_fit_cr = np.polyfit(righty*ym_per_pix, rightx*xm_per_pix, deg=2)
+            # Calculate radii of curvature in meters
+            right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
+            # Stash away the curvatures
+            self.right_line.radius_of_curvature = right_curverad
+        except:
+            self.right_line.radius_of_curvature = 0
+            right_curverad = 0
+            pass
 
-        # Calculate radii of curvature in meters
-        y_eval = np.max(ploty)  # Where radius of curvature is measured
-        left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
-        right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
-    
-        # Stash away the curvatures  
-        self.left_line.radius_of_curvature = left_curverad  
-        self.right_line.radius_of_curvature = right_curverad
-    
         return left_fit, right_fit, left_curverad, right_curverad, out_img
 
     def nonSliding(self, binary_warped, left_fit, right_fit):
@@ -298,56 +318,71 @@ class LaneDetector():
         rightx = nonzerox[right_lane_inds]
         righty = nonzeroy[right_lane_inds]
 
+        # Define conversions in x and y from pixels space to meters
+        ym_per_pix = 30.0/720 # meters per pixel in y dimension
+        xm_per_pix = 3.7/700 # meters per pixel in x dimension
+
         # Fit a second order polynomial to each
+        
         try:
             left_fit = np.polyfit(lefty, leftx, 2)
-            right_fit = np.polyfit(righty, rightx, 2) 
-        except:
-            return self.left_line.current_fit, self.right_line.current_fit, self.left_line.radius_of_curvature, self.right_line.radius_of_curvature, None
-    
-        else:
             # Check difference in fit coefficients between last and new fits  
             self.left_line.diffs = self.left_line.current_fit - left_fit
-            self.right_line.diffs = self.right_line.current_fit - right_fit
             if (self.left_line.diffs[0]>0.001 or self.left_line.diffs[1]>0.4 or self.left_line.diffs[2]>150):
                 return self.left_line.current_fit, self.right_line.current_fit, self.left_line.radius_of_curvature, self.right_line.radius_of_curvature, None
-            #print(self.left_line.diffs)
-            if (self.right_line.diffs[0]>0.001 or self.right_line.diffs[1]>0.4 or self.right_line.diffs[2]>150):
-                return self.left_line.current_fit, self.right_line.current_fit, self.left_line.radius_of_curvature, self.right_line.radius_of_curvature, None
-            #print(self.right_line.diffs)
-        
             # Stash away polynomials
             self.left_line.current_fit = left_fit
+
+        except:
+            self.left_line.current_fit = 0
+            self.left_line.radius_of_curvature = 0
+
+        try:
+            right_fit = np.polyfit(righty, rightx, 2)
+            self.right_line.diffs = self.right_line.current_fit - right_fit
+
+            if (self.right_line.diffs[0]>0.001 or self.right_line.diffs[1]>0.4 or self.right_line.diffs[2]>150):
+                return self.left_line.current_fit, self.right_line.current_fit, self.left_line.radius_of_curvature, self.right_line.radius_of_curvature, None
+            # Stash away polynomials
             self.right_line.current_fit = right_fit
-
-            # Define conversions in x and y from pixels space to meters
-            ym_per_pix = 30.0/720 # meters per pixel in y dimension
-            xm_per_pix = 3.7/700 # meters per pixel in x dimension
-
-            # Fit new polynomials to x,y in world space
-            left_fit_cr = np.polyfit(lefty*ym_per_pix, leftx*xm_per_pix, deg=2)
-            right_fit_cr = np.polyfit(righty*ym_per_pix, rightx*xm_per_pix, deg=2)
-
+        except:
+            #return self.left_line.current_fit, self.right_line.current_fit, self.left_line.radius_of_curvature, self.right_line.radius_of_curvature, None
             # Generate x and y values for plotting
             ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
-            left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-            right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
-
             # Calculate radii of curvature in meters
             y_eval = np.max(ploty)  # Where radius of curvature is measured
+
+        try:
+            # Fit new polynomials to x,y in world space
+            left_fit_cr = np.polyfit(lefty*ym_per_pix, leftx*xm_per_pix, deg=2)
+            # Generate x and y values for plotting
+            left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+            # Calculate radii of curvature in meters
             left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
-            right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])     
-
             # Stash away the curvatures  
-            self.left_line.radius_of_curvature = left_curverad  
-            self.right_line.radius_of_curvature = right_curverad
-
+            self.left_line.radius_of_curvature = left_curverad
             setLeftFit(self,left_fit)
             setLeftCurveRad(self,left_curverad)
+        except:
+            left_fit_cr = 0
+            left_curverad = 0
+
+        try:
+            # Fit new polynomials to x,y in world space
+            right_fit_cr = np.polyfit(righty*ym_per_pix, rightx*xm_per_pix, deg=2)
+            # Generate x and y values for plotting
+            right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+            # Calculate radii of curvature in meters
+            right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])     
+            # Stash away the curvatures  
+            self.right_line.radius_of_curvature = right_curverad
             setRightFit(self,right_fit)
             setRightCurveRad(self,right_curverad)
+        except:
+            right_fit = 0
+            right_curverad = 0
 
-            return left_fit, right_fit, left_curverad, right_curverad, None
+        return left_fit, right_fit, left_curverad, right_curverad, None
     
     def drawLane(self, binary_warped, left_fit, right_fit, left_curverad, right_curverad):
     
@@ -470,28 +505,27 @@ class LaneDetector():
             try:
                 #Read frame
                 self.ret, self.frame = self.cap.read()
-
                 self.undistorted = self.frame
-
+                
                 #Resize the frame
-                #resizedFrame = LaneDetector.resizeFrame(self,self.frame)
+                #resizedFrame = LaneDetector.resizeFrame(self,self.undistorted,0.5,0.67) #640 x 360---->320 x 240
 
                 #Apply color filter to the frame
                 #filteredFrame = LaneDetector.colorFilter(self,resizedFrame)
                 
-                #cv2.imshow('Undistorted',self.undistorted)
-
                 #Apply canny algorithm to detect lines
                 canny = cv2.Canny(self.undistorted,200,255)
                 
+                #cv2.imshow('',canny)
+                #cv2.waitKey(1)
+
                 #Change perspective view
                 self.warpedFrame = LaneDetector.warpPerspective(self, canny)
             
                 #cv2.imshow('Canny',self.warpedFrame)
 
                 self.annotatedFrame = LaneDetector.showLane(self)
-            
-                #cv2.imshow('Masked',self.annotatedFrame)
+
                 return (self.left_curverad,self.right_curverad,self.offset)
             
             except:
