@@ -48,6 +48,9 @@ class AutonomousMode(object):
         Initialize LaneDetector.py and RoadSignDetector.py
         Multi threading is neccasary for both lane and road sign detection
         '''
+        radiusLeft = 0
+        radiusRight = 0
+        deviation = 0
         lanedetector = ld.LaneDetector()
         while(True):
             millis1 = int(round(time.time() * 1000))

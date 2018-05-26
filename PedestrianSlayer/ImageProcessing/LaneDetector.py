@@ -32,6 +32,9 @@ class LaneDetector():
         self.errorCnt = 0
         self.prevErrorCnt = 0
         self.captureVideo("")
+        self.left_curverad=0
+        self.right_curverad=0
+        self.offset=0
         warnings.simplefilter('ignore', np.RankWarning)
     #Mutators
     #region
@@ -534,7 +537,7 @@ class LaneDetector():
                 #print(str(self.errorCnt)+" of Error in reading")
                 return (0,0,0)
         # When everything done, release the capture
-        LaneDetector.releaseCapture()
+        LaneDetector.releaseCapture(self)
 
 
 
