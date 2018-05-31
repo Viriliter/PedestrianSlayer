@@ -8,24 +8,24 @@ class IMU():
         self.power_mgmt_1 = 0x6b
         power_mgmt_2 = 0x6c
 
-        bus = smbus.SMBus(1)
-        address = 0x68 #MPU6050 I2C address
+        self.bus = smbus.SMBus(1)
+        self.address = 0x68 #MPU6050 I2C address
 
         #For first run, awake from sleep
-        bus.write_byte_data(address, self.power_mgmt_1, 0)
+        self.bus.write_byte_data(self.address, self.power_mgmt_1, 0)
 
     
     def read_byte(self,adr):
-        return bus.read_byte_data(address, adr)
+        return self.bus.read_byte_data(self.address, adr)
 
     def read_word(self,adr):
-        high = bus.read_byte_data(address, adr)
-        low = bus.read_byte_data(address, adr+1)
+        high = self.bus.read_byte_data(self.address, adr)
+        low = self.bus.read_byte_data(self.address, adr+1)
         val = (high << 8) + low
         return val
 
     def read_word_2c(self,adr):
-        val = read_word(adr)
+        val = IMU.read_word(self,adr)
         if (val >= 0x8000):
             return -((65535 - val) + 1)
         else:
@@ -35,18 +35,18 @@ class IMU():
         return math.sqrt((a*a)+(b*b))
 
     def get_y_rotation(self,x,y,z):
-        radians = math.atan2(x, dist(y,z))
+        radians = math.atan2(x, IMU.dist(self,y,z))
         return -math.degrees(radians)
 
     def get_x_rotation(self,x,y,z):
-        radians = math.atan2(y, dist(x,z))
+        radians = math.atan2(y, IMU.dist(self,x,z))
         return math.degrees(radians)
 
     def readGyro(self):
         #Read from gyroscope registers
-        gyro_xout = read_word_2c(0x43)
-        gyro_yout = read_word_2c(0x45)
-        gyro_zout = read_word_2c(0x47)
+        gyro_xout = IMU.read_word_2c(self,0x43)
+        gyro_yout = IMU.read_word_2c(self,0x45)
+        gyro_zout = IMU.read_word_2c(self,0x47)
 
         print ("Gyroscope X : ", gyro_xout, " scaled: ", (gyro_xout / 131))
         print ("Gyroscope Y : ", gyro_yout, " scaled: ", (gyro_yout / 131))
@@ -56,9 +56,13 @@ class IMU():
     
     def readAccel(self): 
         #Read from accelerometer registers
-        accel_xout = read_word_2c(0x3b)
-        accel_yout = read_word_2c(0x3d)
-        accel_zout = read_word_2c(0x3f)
+        accel_xout = IMU.read_word_2c(self,0x3b)
+        accel_yout = IMU.read_word_2c(self,0x3d)
+        accel_zout = IMU.read_word_2c(self,0x3f)
+
+        accel_xout_scaled = accel_xout / 16384.0
+        accel_yout_scaled = accel_yout / 16384.0
+        accel_zout_scaled = accel_zout / 16384.0
 
         print ("Accelerometer X: ", accel_xout, " scaled: ", accel_xout_scaled)
         print ("Accelerometer Y: ", accel_yout, " scaled: ", accel_yout_scaled)
@@ -66,19 +70,29 @@ class IMU():
 
         return (accel_xout,accel_yout,accel_zout)
     
-    def readAccel_Scaled(self):
+    def readOrient(self):
+        #Read from accelerometer registers
+        accel_xout = IMU.read_word_2c(self,0x3b)
+        accel_yout = IMU.read_word_2c(self,0x3d)
+        accel_zout = IMU.read_word_2c(self,0x3f)
+        
         accel_xout_scaled = accel_xout / 16384.0
         accel_yout_scaled = accel_yout / 16384.0
         accel_zout_scaled = accel_zout / 16384.0
 
-        print ("X orientation: " , get_x_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
-        print ("Y orientation: " , get_y_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
+        orient_x = IMU.get_x_rotation(self,accel_xout_scaled, accel_yout_scaled, accel_zout_scaled)
+        orient_y = IMU.get_y_rotation(self,accel_xout_scaled, accel_yout_scaled, accel_zout_scaled)
+        
+        print ("X orientation: " , orient_x)
+        print ("Y orientation: " , orient_y)
 
-        return (accel_xout_scaled,accel_yout_scaled,accel_zout_scaled)
+        return (orient_x,orient_y)
 
 if __name__=="__main__":
-    x,y,z = IMU.readAccel()
-    print(x)
-    print(y)
-    print(z)
-    print("----")
+    imu= IMU()
+    while(1):
+        x,y = imu.readOrient()
+        print(x)
+        print(y)
+        print("----")
+        time.sleep(2)
