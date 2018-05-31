@@ -75,7 +75,6 @@ class MotorControl(object):
             self.payload = value
             data = self.mavlink.convertToByte(self.componentID,self.messageID)
             self.payload = None
-            
             self.serial.sendData(data)
             
             return data

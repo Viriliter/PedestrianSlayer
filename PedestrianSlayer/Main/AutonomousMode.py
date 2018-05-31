@@ -58,17 +58,20 @@ class AutonomousMode(object):
         lanedetector = ld.LaneDetector()
         while(True):
             millis1 = int(round(time.time() * 1000))
-            radiusLeft,radiusRight,deviation = lanedetector.getLaneParameters()
+            #radiusLeft,radiusRight,deviation = lanedetector.getLaneParameters()
             millis2 = int(round(time.time() * 1000))
-            print (millis2-millis1)
+            #print (millis2-millis1)
             if not(radiusLeft==0 and radiusRight==0 and deviation==0):
-                print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
-                lanedetector.showFrame("AnnotedFrame")
-                lanedetector.waitKey()
-                middle_radius = (radiusLeft+radiusRight)/2
+                #print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
+                #lanedetector.showFrame("AnnotedFrame")
+                #lanedetector.waitKey()
+                #middle_radius = (radiusLeft+radiusRight)/2
                 #Get undistorted frame. Run objectDetector
                 #frame = self.objectDetector.getUndistortedFrame()
                 #magnitude = self.objectDetector.run(frame)
+
+                self.motorControl.forwardMotor(0)
+                self.servoMotor.angle(10)
                 magnitude=-1
                 #Use motor and servo control algorithm to find steering angle and motor thrust.
                 #Use 4 parameters:p1, p2, p3, and magnitude. Magnitude value overrules steering angle.

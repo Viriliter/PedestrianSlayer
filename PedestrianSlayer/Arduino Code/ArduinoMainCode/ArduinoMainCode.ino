@@ -172,7 +172,8 @@ void blinkLEDTest(int i)
                 {
                   ISDIRECTIONCHANGED=false;
                   payload = input[6];
-                  
+                  Serial.print("Forward");
+                  Serial.print(payload);
                   forwardMotor(payload);
                 }
                 else
@@ -189,7 +190,8 @@ void blinkLEDTest(int i)
                 {
                   ISDIRECTIONCHANGED=false;
                   payload = input[6];
-                  
+                  Serial.print("Backward");
+                  Serial.print(payload);
                   backwardMotor(payload);
                 }
                 else{DIRECTION=false;ISDIRECTIONCHANGED=true;}
@@ -201,6 +203,8 @@ void blinkLEDTest(int i)
                if(input[5]==0xFF)//Message ID:Angle
               {
                 payload = input[6];
+                Serial.print("Servo.Angle");
+                Serial.print(payload);
                 servoAngle(payload);
               }
               else if(input[5]==0xFE)//Message ID:Default
@@ -392,7 +396,7 @@ void blinkLEDTest(int i)
     }
   
     motorPID.Compute();
-    MotorPWM(Output,1);
+    //MotorPWM(Output,1);
   }
   
   void motorPWM(int pwm, bool direction)
@@ -411,9 +415,9 @@ void blinkLEDTest(int i)
         //Set motor rotation direction
       }
         //Map angular velocity to PWM range
-        int targetPWM = map(cycle, 0, 100, 1400, 1550);
+        //int targetPWM = map(cycle, 0, 100, 1400, 1550);
         //Write the cycle to motor
-        motor.writeMicroseconds(targetPWM);
+        //motor.writeMicroseconds(targetPWM);
     }
     else//Backward Direction
     {
@@ -424,9 +428,9 @@ void blinkLEDTest(int i)
         //Set motor rotation direction
       }
         //Map angular velocity to PWM range
-        int targetPWM = map(cycle, 0, 100, 1400, 1550);
+        //int targetPWM = map(cycle, 0, 100, 1400, 1550);
         //Write the cycle to motor
-        motor.writeMicroseconds(targetPWM);
+        //motor.writeMicroseconds(targetPWM);
     }
     
   }
