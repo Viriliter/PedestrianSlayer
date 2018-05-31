@@ -16,7 +16,7 @@ class MotorControl(object):
         self.mavlink = ml.Mavlink()
         self.serial = ac.ArduinoCommunication()
         #self.speedSensor = SpeedSensor.SpeedSensor()
-
+        self.tireDiameter = 70  #in mm
     #Mutators
     def setPayload(self,payload):
         self.payload = payload
@@ -96,6 +96,13 @@ class MotorControl(object):
         #Calculate ideal speed
         v_ideal = math.sqrt((e+nu)*g/k)
         return idealSpeed
+
+    def getIdelAngularVelocity(self):
+        '''
+        Converts ideal speed of the car and converts to ideal angular velocity(rad/s)
+        '''
+        linearSpeed = MotorControl.getIdealSpeed(self)
+        return linearSpeed/(math.pi*self.tireDiameter)
 
     def speedNegotiation(self,radius,v_target,v_current):
         #Deceleration  value

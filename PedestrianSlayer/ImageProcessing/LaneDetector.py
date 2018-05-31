@@ -126,7 +126,7 @@ class LaneDetector():
     #region
     def captureVideo(self, source = ""):
         if(source==""):
-            self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/Yeniklasör/videoplayback.mp4')
+            self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/Yeniklasör/videoplayback2.mp4')
         else:
             self.cap = cv2.VideoCapture(0)
 
@@ -519,16 +519,18 @@ class LaneDetector():
                 #Apply canny algorithm to detect lines
                 canny = cv2.Canny(self.undistorted,200,255)
                 
-                #cv2.imshow('',canny)
-                #cv2.waitKey(1)
+
 
                 #Change perspective view
                 self.warpedFrame = LaneDetector.warpPerspective(self, canny)
-            
+                cv2.imshow('',canny)
+                cv2.waitKey(1)
                 #cv2.imshow('Canny',self.warpedFrame)
 
                 self.annotatedFrame = LaneDetector.showLane(self)
-
+                #self.left_curverad=0
+                #self.right_curverad=0
+                #self.offset=0
                 return (self.left_curverad,self.right_curverad,self.offset)
             
             except:

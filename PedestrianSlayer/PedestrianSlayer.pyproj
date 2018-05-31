@@ -64,6 +64,7 @@
     <Compile Include="Sensors\IMU.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Sensors\SensorThreads.py" />
     <Compile Include="Sensors\SpeedSensor.py">
       <SubType>Code</SubType>
     </Compile>
@@ -92,9 +93,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MechanicalControl\NeuralNetwork.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="MechanicalControl\PID.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MechanicalControl\ServoControl.py">

@@ -16,6 +16,7 @@ class SonicSensor():
         #Set GPIO Pins
         #self.GPIO_TRIGGER = 18
         #self.GPIO_ECHO = 24
+        i=0
 
     def measureDistance(self):
         #==========================================================================================================

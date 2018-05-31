@@ -7,20 +7,21 @@
 //=====================
 //Region Configuration Tab
 //=====================
-  int redLED = 8;
-  int yellowLED = 9;
-  int blueLED = 10;
+  const int redLED = 8;
+  const int yellowLED = 9;
+  const int blueLED = 10;
+  const int redLED2 = 7;
 
   bool DIRECTION = true;            //set to forward direction
                                     //(false value is backward direction)
   bool ISDIRECTIONCHANGED = false;
   
   //Motor Configuration
-  int MOTOR_PIN = 9;
+  const int MOTOR_PIN = 9;
   Servo motor;
   
   //Servo Configuration
-  int SERVO_PIN = 10;
+  const int SERVO_PIN = 10;
   Servo servo;
 
   //PID Configuration
@@ -34,31 +35,35 @@
   //Specify the links and initial tuning parameters
   PID motorPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
   //------------------------
-    
+   
   //Light Configuration
-  int BRAKE_LIGHT_PIN = 3;
-  int LEFT_TURNING_PIN = 4;
-  int RIGHT_TURNING_PIN = 5;
-  int HIGH_BEAM_PIN = 6;
+  const int BRAKE_LIGHT_PIN = 3;
+  const int LEFT_TURNING_PIN = 4;
+  const int RIGHT_TURNING_PIN = 5;
+  const int HIGH_BEAM_PIN = 6;
   
+  /*
+   * It is moved to Raspberry Pi
   //Ultrasonic Configuration
-  int ULTRAS_TRIG = 7;
-  int ULTRA_ECHO = 8;
+  const int ULTRAS_TRIG = 7;
+  const int ULTRA_ECHO = 8;
+  */
   
-  // MPU6050 Configuration
-  int MPU_INT = 2;
-  int MPU_SCL = A7;
-  int MPU_SCA = A6;
+  // Speed Sensor Configuration
+  int SPEED_INT = 2;
+  volatile int SPEED_IMPULSE;
+  
   
   //Serial Configuration
-  int BAUD_RATE = 19200;
+  const int BAUD_RATE = 19200;
   int PACKET_SIZE = 8;
 //End Region
 
-//Call methods
+//Declare methods
 void serialRead();
-void serialWrite();
+void serialWrite(byte data[]);
 void HEXClassifier(byte input[]);
+byte mavlink(String componentID,String messageID, long payload);
 
 void setup() {
   //=====================
@@ -67,7 +72,9 @@ void setup() {
   pinMode(redLED,OUTPUT);
   pinMode(yellowLED,OUTPUT);
   pinMode(blueLED,OUTPUT);
+  pinMode(redLED2,OUTPUT);
   Serial.begin(BAUD_RATE);
+
   //===========================
   //This is actual setup code
   //===========================
@@ -79,6 +86,27 @@ void setup() {
   */
 }
 
+//===========================
+//Region Test
+//===========================
+void blinkLEDTest(int i)
+{
+  if(i==0){digitalWrite(redLED,LOW);digitalWrite(yellowLED,LOW);digitalWrite(blueLED,LOW);
+            digitalWrite(redLED,HIGH);delay(200);digitalWrite(redLED,LOW);
+            //byte speed_data = mavlink("SPEEDSENSOR","V",(float)4.0);
+            //serialWrite(speed_data);delay(200);
+            }
+  
+  if(i==1){digitalWrite(redLED,LOW);digitalWrite(yellowLED,LOW);digitalWrite(blueLED,LOW);
+            digitalWrite(yellowLED,HIGH);delay(200);digitalWrite(yellowLED,LOW);}  
+  
+  if(i==2){digitalWrite(redLED,LOW);digitalWrite(yellowLED,LOW);digitalWrite(blueLED,LOW);
+            digitalWrite(blueLED,HIGH);delay(200);digitalWrite(blueLED,LOW);}
+}
+
+//===========================
+//End Region
+//===========================
 
 //===========================
 //Region Serial Communication
@@ -106,10 +134,11 @@ void setup() {
     //----------------------------
     if(Serial.available())
     {
-      //delay(10);
+      
+      Serial.flush();
       PACKET_SIZE = sizeof(data);//Get length of the transmitted data
       Serial.write(data,PACKET_SIZE);
-      Serial.flush();
+      delay(10);
     } 
   }
   
@@ -132,47 +161,50 @@ void setup() {
             {
               if(input[5]==0xFF)//Message ID:Stop
               {
-                Serial.println("ACK");
                 blinkLEDTest(0);
                 //stopMotor();
               }
               else if(input[5]==0xFE)//Message ID:Forward
               {
-                Serial.println("ACK");
                 blinkLEDTest(1);
-                /*
+
                 if(DIRECTION)
                 {
-                ISDIRECTIONCHANGED=false;
-                value = input[6];
+                  ISDIRECTIONCHANGED=false;
+                  payload = input[6];
+                  
+                  forwardMotor(payload);
                 }
-                else{DIRECTION=true;ISDIRECTIONCHANGED=true;}
-                */
+                else
+                {
+                  DIRECTION=true;
+                  ISDIRECTIONCHANGED=true;
+                }                
               }
               else if(input[5]==0xFD)//Message ID:Backward
               {
-                Serial.println("ACK");
                 blinkLEDTest(2);
-                /*
+                
                 if(!DIRECTION)
                 {
-                ISDIRECTIONCHANGED=false;
-                value = input[6];
+                  ISDIRECTIONCHANGED=false;
+                  payload = input[6];
+                  
+                  backwardMotor(payload);
                 }
                 else{DIRECTION=false;ISDIRECTIONCHANGED=true;}
-                */
+                
               }
             }
             else if(input[4]==0xFD)//Component ID:Servo
             {
                if(input[5]==0xFF)//Message ID:Angle
               {
-                Serial.println("ACK");
                 payload = input[6];
+                servoAngle(payload);
               }
               else if(input[5]==0xFE)//Message ID:Default
               {
-                Serial.println("ACK");
                 payload = input[6];
               }
             }
@@ -220,11 +252,10 @@ void setup() {
       byte _COMPONENTID = 0xFF;
       if(messageID=="DISTANCE"){_MESSAGEID = 0xFF; _PAYLOAD = payload;}
     }
-    else if(componentID=="OPTICALNAVIGATOR")  //(It is optional and maybe won't be used.)
+    else if(componentID=="SPEEDSENSOR")  //(It is optional and maybe won't be used.)
     {
       byte _COMPONENTID = 0xFC;
-      if(messageID=="X"){_MESSAGEID = 0xFF ;_PAYLOAD = payload;}
-      else if(messageID=="Y"){_MESSAGEID = 0xFE;_PAYLOAD = payload;}
+      if(messageID=="V"){_MESSAGEID = 0xFF ;_PAYLOAD = payload;}
     }
     int data_length = int(_PAYLOADLENGTH)+7;
     byte data[data_length] = {_STARTFIELD,_PAYLOADLENGTH,_PACKETSEQUENCE,_SYSTEMID,_COMPONENTID,_MESSAGEID,_PAYLOAD,_CRC};
@@ -251,8 +282,9 @@ void setup() {
     }
     
   }
- //End Region
-
+//===========================
+//End Region
+//===========================
 
 
 
@@ -265,49 +297,138 @@ void setup() {
   //It will control car lights.(It is optional and maybe won't be used.)
   //----------------------------
   }
-  
 
-  /* These will probably not used.
-    void motorPID()
-    {
+  void forwardMotor(int payload)
+  {
+    //Map duty cycle to PWM range
+    int targetPWM = map(payload, 0, 100, 1400, 1250);
     
+    //Get angular speed of the wheel
+    //w_wheel = ;
+    /*
+     double gap = abs(w_target-w_wheel); //distance away from setpoint
+    if (gap < 10)
+    { 
+      //we're close to setpoint, use conservative tuning parameters
+      motorPID.SetTunings(consKp, consKi, consKd);
+    }
+    else
+    {
+       //we're far from setpoint, use aggressive tuning parameters
+       motorPID.SetTunings(aggKp, aggKi, aggKd);
     }
   
-    void servoPID()
-    {
+    motorPID.Compute();
+    motorPWM(PWM,1)*/
+    motorPWM(targetPWM,1);
+  }
+
+  void backwardMotor(int payload)
+  {
+
+
+    //Get angular speed of the wheel
+    double w_wheel = 0;
+    double w_target = 0;
+
     
+    double gap = abs(w_target-w_wheel); //distance away from setpoint
+    if (gap < 10)
+    { 
+      //we're close to setpoint, use conservative tuning parameters
+      motorPID.SetTunings(consKp, consKi, consKd);
     }
+    else
+    {
+       //we're far from setpoint, use aggressive tuning parameters
+       motorPID.SetTunings(aggKp, aggKi, aggKd);
+    }
+    double PWM=0;
+    motorPID.Compute();
+    motorPWM(PWM,0);
+  }
+
+  void startMotor(int m_direction)
+  {
+    if(m_direction)   // from 0 direction to 1
+    {
+      for(int i=1400 ; i>=1340 ; i-=10)
+      {
+        motorPWM(i,1);
+        delay(8);
+      }
+    }
+    else if(m_direction)  // from 1 direction to 0
+    
+    {
+      for(int i=1400 ; i<=1460 ; i+=10)
+      {
+        motorPWM(i,1);
+        delay(8);
+      }
+    }
+  }
+  
+  void stopMotor()
+  {
+    motorPWM(1400,1);
+  } 
+
+  void motorPWM2(int w_target)
+  {
+  /*This methpd gets target and actual angular velocity fo the car. Then, converts to PWM value. 
   */
-
-
-  void motorPWM(int cycle)
+    int w_wheel=0;
+    double gap = abs(w_target-w_wheel); //distance away from setpoint
+    if (gap < 10)
+    { 
+      //we're close to setpoint, use conservative tuning parameters
+      motorPID.SetTunings(consKp, consKi, consKd);
+    }
+    else
+    {
+       //we're far from setpoint, use aggressive tuning parameters
+       motorPID.SetTunings(aggKp, aggKi, aggKd);
+    }
+  
+    motorPID.Compute();
+    MotorPWM(Output,1);
+  }
+  
+  void motorPWM(int pwm, bool direction)
   {
     //----------------------------
     //It gets duty cycle as input and converts and writes to esc as PWM value.
     //----------------------------
-    //Check direction
-    /*
+    
+    //Check directions
     if(DIRECTION)//Forward direction
     {
-      if(ISDIRECTIONCHANGED)
+      if(ISDIRECTIONCHANGED)//If direction is changed
       {
-      stopMotor();delay(500);
-      //Set motor rotation direction
+        //Stop the motor for a while
+        stopMotor();delay(1500);
+        //Set motor rotation direction
       }
-      //Write the cycle to motor
-      motor.writeMicroseconds(cycle);
+        //Map angular velocity to PWM range
+        int targetPWM = map(cycle, 0, 100, 1400, 1550);
+        //Write the cycle to motor
+        motor.writeMicroseconds(targetPWM);
     }
     else//Backward Direction
     {
-      if(ISDIRECTIONCHANGED)
+      if(ISDIRECTIONCHANGED)//If direction is changed
       {
-      stopMotor();delay(500);
-      //Set motor rotation direction
+        //Stop the motor for a while
+        stopMotor();delay(1500);
+        //Set motor rotation direction
       }
-      //Write the cycle to motor
-      motor.writeMicroseconds(cycle);
+        //Map angular velocity to PWM range
+        int targetPWM = map(cycle, 0, 100, 1400, 1550);
+        //Write the cycle to motor
+        motor.writeMicroseconds(targetPWM);
     }
-    */
+    
   }
   
   void servoAngle(int angle)
@@ -317,70 +438,32 @@ void setup() {
     //----------------------------
     //servo.write(angle);
   }
-
+//===========================
 //End Region
-
+//===========================
 
 
 
 //===========================
 //Region Sensor
 //=========================== 
-  double measureDistance()
-  {
-    //----------------------------
-    //Distance is measured and returned as double value using ultrasonic distance sensor.
-    //---------------------------- 
-  }
-  
+  /*
   void MPU6050()
   {
     //----------------------------
     //Measures acceleration and orientation values from MPU6050.
     //---------------------------- 
-  }
-//End Region
+  }*/
 
 
-
-
-//===========================
-//Region Test
-//===========================
-void blinkLEDTest(int i)
-{
-  if(i==0){digitalWrite(redLED,LOW);digitalWrite(yellowLED,LOW);digitalWrite(blueLED,LOW);
-            digitalWrite(redLED,HIGH);delay(200);digitalWrite(redLED,LOW);}
-  
-  if(i==1){digitalWrite(redLED,LOW);digitalWrite(yellowLED,LOW);digitalWrite(blueLED,LOW);
-            digitalWrite(yellowLED,HIGH);delay(200);digitalWrite(yellowLED,LOW);}  
-  
-  if(i==2){digitalWrite(redLED,LOW);digitalWrite(yellowLED,LOW);digitalWrite(blueLED,LOW);
-            digitalWrite(blueLED,HIGH);delay(200);digitalWrite(blueLED,LOW);}
-}
-//End Region
-
-void generalMotorTest()
-{
-  for(int stepVal = 0 ; stepVal<100 ; stepVal = stepVal+10)
+  void speedSensor()
   {
-    motorPWM(0+stepVal);
-                int angle = 110-stepVal*0.3;
-    servoAngle(angle);
-    delay(400);
+
   }
-  for(int stepVal = 0 ; stepVal<100 ; stepVal = stepVal+10)
-  {
-    motorPWM(0+stepVal);
-    int angle = 110+stepVal*0.3;
-    servoAngle(angle);
-    delay(400);
-  }
-  motorPWM(50);
-  servoAngle(110);
-  delay(1000);
-  motorPWM(0);
-}
+//===========================
+//End Region
+//===========================
+
 
 //===========================
 // Main Loop
@@ -395,6 +478,7 @@ void loop()
   //Just for the test
   serialRead();
   delay(5);
+  
   //serialWrite();
   //=========================
 

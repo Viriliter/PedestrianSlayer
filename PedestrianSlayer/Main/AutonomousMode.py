@@ -3,6 +3,8 @@ from ImageProcessing import ObjectDetector as od
 from ImageProcessing import CascadeClassifier as cc
 from MechanicalControl import MotorControl as mc
 from MechanicalControl import ServoControl as sc
+from MechanicalControl import NeuralNetwork as nn
+from Sensors import SensorThread as st
 import time
 
 class AutonomousMode(object):
@@ -34,11 +36,13 @@ class AutonomousMode(object):
         self.servoControl = sc.ServoControl()
         #self.objectDetector = od.ObjectDetector()
         #self.cascadeClassifier = cc.CascadeClassifier()
+        self.sensorThread = st.SensorThread()
+        self.neuralNetwork = nn.NeuralNetwork()
         self.count = 0
         self.user_input = None
         # Create new threads
         AutonomousMode.run(self)
-    
+        
     def getInput(self):
         self.user_input = input()
 
@@ -61,6 +65,7 @@ class AutonomousMode(object):
                 print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
                 lanedetector.showFrame("AnnotedFrame")
                 lanedetector.waitKey()
+                middle_radius = (radiusLeft+radiusRight)/2
                 #Get undistorted frame. Run objectDetector
                 #frame = self.objectDetector.getUndistortedFrame()
                 #magnitude = self.objectDetector.run(frame)
@@ -68,9 +73,13 @@ class AutonomousMode(object):
                 #Use motor and servo control algorithm to find steering angle and motor thrust.
                 #Use 4 parameters:p1, p2, p3, and magnitude. Magnitude value overrules steering angle.
                 #if(magnitude==-1):
-                #    latError = deviation
-                #    self.motorControl.speedNegotiation(radius,v_target,v_current)
-                #    self.servoControl.steerAngleControl(speed,k,angleDif,latError)
+                #   latError = deviation
+                # Get ideal angular speed by using radius of curvature of the road
+                #   angular_speed = self.motorControl.getIdelAngularVelocity(radius)
+                #   self.motorControl.forwardMotor(angular_speed)
+                # Get ideal steering angle of the tires using perceptron learning algorithm
+                #   angle = self.neuralNetwork.getSteeringAngle(middle_radius,deviation,angular_speed,orient)
+                #   self.servoControl.angle(angle)
                 #else:
                     #Overrule magnitude value.
                 #    latError = deviation - magnitude
