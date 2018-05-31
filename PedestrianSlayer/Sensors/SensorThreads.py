@@ -1,6 +1,6 @@
 from Sensors import IMU
 from Sensors import UltrasonicSensor as us
-from Communication import ArduinoCommunication as ac
+#from Communication import ArduinoCommunication as ac
 import threading
 import time
 
@@ -15,7 +15,7 @@ class SensorThread():
     def __init__(self):
         self.imu = IMU.IMU()
         self.distanceSensor = us.UltrasonicSensor()
-        self.serial = ac.ArduinoCommunication()
+        #self.serial = ac.ArduinoCommunication()
         self.distance = 0
         self.imu_gyro_x = 0
         self.imu_gyro_y = 0

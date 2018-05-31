@@ -5,6 +5,7 @@ import threading
 from collections import deque
 from . import Line
 import warnings
+
 class LaneDetector():
     '''
     This class finds the road lines using warpPerspective and Canny method, and then
@@ -28,14 +29,20 @@ class LaneDetector():
         self.left_line = Line.Line()
         self.right_line = Line.Line()
         self.XmperPix = 3.7/700         # meters per pixel in x dimension
-        self.YmperPix = 30/720          # meters per pixel in y dimension
+        self.YmperPix = 30.0/720          # meters per pixel in y dimension
         self.errorCnt = 0
         self.prevErrorCnt = 0
         self.captureVideo("")
         self.left_curverad=0
         self.right_curverad=0
         self.offset=0
+        self.kond=0
+        self.leftarray=[]
+        self.roghtarray=[]
         warnings.simplefilter('ignore', np.RankWarning)
+        #self.distortion_array = np.array(np.load('/home/pi/Desktop/PedestrianSlayer-master/PedestrianSlayer/ImageProcessing/distortionMatrix.npy'))
+        #self.mtx = np.array(np.load('/home/pi/Desktop/PedestrianSlayer-master/PedestrianSlayer/ImageProcessing/mtxMatrix.npy'))
+        #self.dist = np.array(np.load('/home/pi/Desktop/PedestrianSlayer-master/PedestrianSlayer/ImageProcessing/distMatrix.npy'))
     #Mutators
     #region
     def setFrame(self, frame):
@@ -126,9 +133,14 @@ class LaneDetector():
     #region
     def captureVideo(self, source = ""):
         if(source==""):
+            #self.cap = cv2.VideoCapture('/home/pi/Desktop/vidivodo8.mp4')
             self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/Yeniklasör/videoplayback2.mp4')
+
+            #self.cap.set(cv2.cv.CV_CAP_PROP_FPS,1000)
         else:
             self.cap = cv2.VideoCapture(0)
+            self.cap.set(3,360)
+            self.cap.set(4,240)
 
     def setResolution(self, weight, height):
         self.width = width
@@ -136,7 +148,7 @@ class LaneDetector():
         self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
         self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
 
-    def resizeFrame(self,frame,fx=0.5,fy=0.5):
+    def resizeFrame(self,frame,fx=0.33,fy=0.33):
         '''
         Resize the frame to defined size
         '''
@@ -146,13 +158,17 @@ class LaneDetector():
         '''
         Applies predefiened color filter to frame
         '''
-        #Create white line mask
-        lowerW = np.uint8([150, 150, 150])
-        upperW = np.uint8([255, 255, 255])
-        #Apply mask on the frame
-        maskedFrame = cv2.inRange(frame,lowerW,upperW)
-        return maskedFrame
+        HLS = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
+        h,l,s = cv2.split(HLS)
+        new_s = np.dstack((h,h,h))
+        converted=np.add(frame,new_s)
+        return converted
 
+    def undistortFrame(self,distorted_frame):
+        # undistort
+        dst = cv2.undistort(distorted_frame, self.mtx, self.dist, None, self.distortion_array)
+        return dst
+        
     def createTrapzoid(self, frame, bottomWidth, upperWidth, height, xbias=0, ybias=0):
         frame_size = (frame.shape[1],frame.shape[0])
         self.src = np.array([[frame_size[0]/2-upperWidth/2+xbias,frame_size[1]-height+ybias],[frame_size[0]/2+upperWidth/2+xbias,frame_size[1]-height+ybias],[frame_size[0]/2+bottomWidth/2+xbias,frame_size[1]+ybias],[frame_size[0]/2-bottomWidth/2+xbias,frame_size[1]+ybias]],np.float32)
@@ -165,8 +181,12 @@ class LaneDetector():
 
     def warpPerspective(self, frame):
         frame_size = (frame.shape[1],frame.shape[0])
+        bottom=frame.shape[1]
+        upper=int(frame.shape[1] * 1)
+        hh=int(frame.shape[0] * 0.4)
+       
     
-        LaneDetector.createTrapzoid(self, frame, 570, 220, 100)
+        LaneDetector.createTrapzoid(self, frame, bottom, upper, hh)
         M = cv2.getPerspectiveTransform(self.src,self.dst)
         #M = np.fliplr([M])[0]
         
@@ -174,45 +194,57 @@ class LaneDetector():
         
     def iWarpPerspective(self, frame):
         frame_size = (frame.shape[1],frame.shape[0])
+        bottom=frame.shape[1]
+        upper=int(frame.shape[1] * 1)
+        hh=int(frame.shape[0] * 0.4)
     
-        LaneDetector.createTrapzoid(self, frame,570,220,100)
+        LaneDetector.createTrapzoid(self, frame,bottom,upper,hh)
         M = cv2.getPerspectiveTransform(self.dst,self.src)
         #M = np.fliplr([M])[0]
         
         return cv2.warpPerspective(frame, M, frame_size, flags=cv2.INTER_LINEAR)
 
     def slidingWindow(self, binary_warped):
+        
         out_img = (np.dstack((binary_warped, binary_warped, binary_warped)) * 255).astype(np.uint8)
         histogram = np.sum(binary_warped[int(binary_warped.shape[0]/2):,:], axis=0)
-
+        #print histogram
+        
         # Find the peak of the left and right halves of the histogram
         # These will be the starting point for the left and right lines
         midpoint = np.int(histogram.shape[0]/2)
         leftx_base = np.argmax(histogram[:midpoint])
+      
         rightx_base = np.argmax(histogram[midpoint:]) + midpoint
-
+        leftx=[]
+        lefty=[]
+        rightx=[]
+        righty=[]
+       
+            
         # Choose the number of sliding windows
-        nwindows = 9
-
+        nwindows = 15
         # Set height of windows
         window_height = np.int(binary_warped.shape[0]/nwindows)
-
         # Identify the x and y positions of all nonzero pixels in the image
         nonzero = binary_warped.nonzero()
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
+       
 
         # Current positions to be updated for each window
         leftx_current = leftx_base
         rightx_current = rightx_base
         # Set the width of the windows +/- margin
-        margin = 100
+        margin = 70
         # Set minimum number of pixels found to recenter window
-        minpix = 50
+        minpix = 60
         # Create empty lists to receive left and right lane pixel indices
+
         left_lane_inds = []
         right_lane_inds = []
-
+        leftdelete=[]
+        rightdelete=[]
         # Step through the windows one by one
         for window in range(nwindows):
             # Identify window boundaries in x and y (and right and left)
@@ -225,7 +257,7 @@ class LaneDetector():
             # Draw the windows on the visualization image
             vi=cv2.rectangle(out_img, (win_xleft_low,win_y_low), (win_xleft_high,win_y_high), color=(0,255,0), thickness=2) # Green
             vi=cv2.rectangle(out_img, (win_xright_low,win_y_low), (win_xright_high,win_y_high), color=(0,255,0), thickness=2) # Green
-            #cv2.imshow('aa',vi)
+            cv2.imshow('kk',out_img)
             # Identify the nonzero pixels in x and y within the window
             good_left_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & (nonzerox >= win_xleft_low) & (nonzerox < win_xleft_high)).nonzero()[0]
             good_right_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & (nonzerox >= win_xright_low) & (nonzerox < win_xright_high)).nonzero()[0]
@@ -237,11 +269,114 @@ class LaneDetector():
                 leftx_current = np.int(np.mean(nonzerox[good_left_inds]))
             if len(good_right_inds) > minpix:
                 rightx_current = np.int(np.mean(nonzerox[good_right_inds]))
+   
+        
 
+        
+        
+        if(len(left_lane_inds[nwindows-1]) < minpix):
+            leftdelete.append(nwindows-1)
+       
+
+        if(len(right_lane_inds[nwindows-1]) < minpix):
+            rightdelete.append(nwindows-1)
+
+        
+        for y in range(2,nwindows-1):
+            x=nwindows-y
+            l1=int(len(left_lane_inds[x-1]) > minpix)
+            l2=int(len(left_lane_inds[x]) > minpix)
+            l3=int(len(left_lane_inds[x+1]) > minpix)
+            r1=int(len(right_lane_inds[x-1]) > minpix)
+            r2=int(len(right_lane_inds[x]) > minpix)
+            r3=int(len(right_lane_inds[x+1]) > minpix)
+            
+            if ((l1+l2+l3)<2):
+                leftdelete.append(x)
+            if ((r1+r2+r3)<2):
+               
+                rightdelete.append(x)
+
+        if(len(left_lane_inds[1]) < minpix):
+            leftdelete.append(1)
+    
+        if(len(right_lane_inds[1]) < minpix):
+            rightdelete.append(1)
+        #print len(leftdelete)
+        #for h in range (len(leftdelete)-1):
+            #print (leftdelete[h+1]>1+leftdelete[h])
+            #print str(leftdelete[h+1]) + "***" + str(leftdelete[h])
+            #if leftdelete[h+1]>leftdelete[h]:
+                
+                
+
+      
+        for i in range(len(leftdelete)):
+          
+           k=leftdelete[i]
+           p=len(left_lane_inds[k])
+           window=k
+           win_y_low = binary_warped.shape[0] - (window+1)*window_height
+           win_y_high = binary_warped.shape[0] - window*window_height
+           avg=(win_y_low+win_y_high)/2
+           avg=int(avg)
+           lefty.extend([avg,avg,avg])
+           leftx.extend([0,1,2])
+           for n in range (win_y_low,win_y_high):
+
+               for g in range (2):
+                   out_img[n,g]=255
+                
+          # if(p>0):
+             #  for t in range (p):
+            #       out_img[nonzeroy[left_lane_inds[k][t]],nonzerox[left_lane_inds[k][t]]]=0
+           del left_lane_inds[k]
+
+        
+      
+
+        for j in range(len(rightdelete)):
+           l=rightdelete[j]
+           u=len(right_lane_inds[l])
+           window=l
+           win_y_low = binary_warped.shape[0] - (window+1)*window_height
+           win_y_high = binary_warped.shape[0] - window*window_height
+           avg=(win_y_low+win_y_high)/2
+           avg=int(avg)
+           
+           righty.extend([avg,avg,avg])
+           
+           outlane = binary_warped.shape[1]
+           rightx.extend([outlane-2,outlane-1,outlane])
+           for n in range (win_y_low,win_y_high):
+               #righty.extend([n])
+               for g in range (outlane-2,outlane):
+                   out_img[n,g]=255
+                      
+          # if(u>0):
+           #    for m in range (u):
+                   
+               
+            #       koor1=int(nonzerox[right_lane_inds[l][m]])
+            #       koor2=int(nonzeroy[right_lane_inds[l][m]])
+                 
+           #        out_img[koor2,koor1]=0
+
+           del right_lane_inds[l]
+           
+            
+      
+       
+        cv2.imshow('yy',out_img)       
+                
+       
+        
+        
         # Generate x and y values for plotting
         ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
         # Calculate radii of curvature in meters
         y_eval = np.max(ploty)  # Where radius of curvature is measured
+       
 
         
         
@@ -255,23 +390,45 @@ class LaneDetector():
         try:
             # Concatenate the arrays of indices
             left_lane_inds = np.concatenate(left_lane_inds)
+          
             # Extract left and right line pixel positions
-            leftx = nonzerox[left_lane_inds]
-            lefty = nonzeroy[left_lane_inds]
+            leftx.extend(nonzerox[left_lane_inds])
+            lefty.extend(nonzeroy[left_lane_inds])
+           
+
+       
             # Fit a second order polynomial to each
             left_fit = np.polyfit(lefty, leftx, 2)
+          
             # Stash away polynomials
             self.left_line.current_fit = left_fit
+           
             # Generate x and y values for plotting
             left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+            
             out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
             out_img[ploty.astype('int'),left_fitx.astype('int')] = [0, 255, 255]
+           
             # Fit new polynomials to x,y in world space
-            left_fit_cr = np.polyfit(lefty*ym_per_pix, leftx*xm_per_pix, deg=2)
+            #print str(len(lefty)) + "****" +str(len(leftx))
+            lefty=np.array(lefty)
+            leftx=np.array(leftx)
+           
+           
+         
+        
+            left_fit_cr = np.polyfit(lefty*ym_per_pix, leftx*xm_per_pix, 2)
+          
+          
+            
             # Calculate radii of curvature in meters
             left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
              # Stash away the curvatures  
             self.left_line.radius_of_curvature = left_curverad
+            print( "*******************************************************" + str(np.mean(leftx)))
+            
+           
+            
         except:
             self.left_line.radius_of_curvature = 0
             left_curverad = 0
@@ -281,8 +438,8 @@ class LaneDetector():
             # Concatenate the arrays of indices
             right_lane_inds = np.concatenate(right_lane_inds)
             # Extract left and right line pixel positions
-            rightx = nonzerox[right_lane_inds]
-            righty = nonzeroy[right_lane_inds] 
+            rightx.extend(nonzerox[right_lane_inds])
+            righty.extend(nonzeroy[right_lane_inds])
             # Fit a second order polynomial to each
             right_fit = np.polyfit(righty, rightx, 2)
             # Stash away polynomials
@@ -292,11 +449,19 @@ class LaneDetector():
             out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
             out_img[ploty.astype('int'),right_fitx.astype('int')] = [0, 255, 255]
             # Fit new polynomials to x,y in world space
+            righty=np.array(righty)
+            rightx=np.array(rightx)
+         
+            
             right_fit_cr = np.polyfit(righty*ym_per_pix, rightx*xm_per_pix, deg=2)
             # Calculate radii of curvature in meters
             right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
+            
+            
             # Stash away the curvatures
             self.right_line.radius_of_curvature = right_curverad
+            
+          
         except:
             self.right_line.radius_of_curvature = 0
             right_curverad = 0
@@ -309,6 +474,7 @@ class LaneDetector():
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
         margin = 100
+     
 
         left_lane_inds = ((nonzerox > (left_fit[0]*(nonzeroy**2) + left_fit[1]*nonzeroy + left_fit[2] - margin))
             & (nonzerox < (left_fit[0]*(nonzeroy**2) + left_fit[1]*nonzeroy + left_fit[2] + margin)))
@@ -320,6 +486,7 @@ class LaneDetector():
         lefty = nonzeroy[left_lane_inds]
         rightx = nonzerox[right_lane_inds]
         righty = nonzeroy[right_lane_inds]
+      
 
         # Define conversions in x and y from pixels space to meters
         ym_per_pix = 30.0/720 # meters per pixel in y dimension
@@ -396,11 +563,14 @@ class LaneDetector():
         # Generate x and y values for plotting
         ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
         left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+   
+                
         right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]   
     
         # Define conversions in x and y from pixels space to meters
         ym_per_pix = self.YmperPix
         xm_per_pix = self.XmperPix
+        
     
         midpoint = np.int(self.undistorted.shape[1]/2)
         middle_of_lane = (right_fitx[-1] - left_fitx[-1]) / 2.0 + left_fitx[-1]
@@ -410,6 +580,8 @@ class LaneDetector():
         pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
         pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
         pts = np.hstack((pts_left, pts_right))
+     
+        
 
         # Draw the lane onto the warped blank image
         cv2.fillPoly(color_warped, np.int_([pts]), (0,255, 0))
@@ -421,13 +593,26 @@ class LaneDetector():
         result = cv2.addWeighted(self.undistorted, 1, unwarped, 0.3, 0)
         radius = np.mean([left_curverad, right_curverad])
 
+
+      
+        if (left_curverad>1000) & (right_curverad>1000):
+            left_curverad=0
+            right_curverad=left_curverad+80000
+            
+            
+        if right_curverad>(1000*left_curverad):
+            right_curverad=left_curverad+80000
+        if left_curverad>(1000*right_curverad):
+            left_curverad=right_curverad+80000
         # Add radius and offset calculations to top of video
-        cv2.putText(result,"L. Lane Radius: " + "{:0.2f}".format(left_curverad/1000) + 'km', org=(50,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1, color=(255,255,255), lineType = cv2.LINE_AA, thickness=2)
-        cv2.putText(result,"R. Lane Radius: " + "{:0.2f}".format(right_curverad/1000) + 'km', org=(50,100), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1, color=(255,255,255), lineType = cv2.LINE_AA, thickness=2)
-        cv2.putText(result,"C. Position: " + "{:0.2f}".format(offset) + 'm', org=(50,150), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1, color=(255,255,255), lineType = cv2.LINE_AA, thickness=2)
+        cv2.putText(result,"L. Lane Radius: " + "{:0.2f}".format(left_curverad/1000) + 'cm', (20,20), cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255))
+        cv2.putText(result,"R. Lane Radius: " + "{:0.2f}".format(right_curverad/1000) + 'cm', (20,50), cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255))
+        cv2.putText(result,"C. Position: " + "{:0.2f}".format(offset) + 'm', (20,80), cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255))
+         #       fontScale=1, color=(255,255,255), lineType = cv2.LINE_AA, thickness=2)
+        #cv2.putText(result,"R. Lane Radius: " + "{:0.2f}".format(right_curverad/1000) + 'km', org=(50,100), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+         #       fontScale=1, color=(255,255,255), lineType = cv2.LINE_AA, thickness=2)
+        #cv2.putText(result,"C. Position: " + "{:0.2f}".format(offset) + 'm', org=(50,150), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+          #      fontScale=1, color=(255,255,255), lineType = cv2.LINE_AA, thickness=2)
         
         self.left_curverad = left_curverad
         self.right_curverad = right_curverad
@@ -442,10 +627,13 @@ class LaneDetector():
         l_radius = deque(maxlen=bins)
         r_radius = deque(maxlen=bins)
         weights = np.arange(1,bins+1)/bins
+        
 
         if len(l_params)==0 & self.prevErrorCnt!=self.errorCnt:
             left_fit, right_fit, left_curverad, right_curverad, _ = LaneDetector.slidingWindow(self, self.warpedFrame)
+          
         else:
+      
             left_fit, right_fit, left_curverad, right_curverad, _ = LaneDetector.nonSliding(self, self.warpedFrame,
                                                                     np.average(l_params,0,weights[-len(l_params):]),
                                                                     np.average(r_params,0,weights[-len(l_params):]))
@@ -460,6 +648,7 @@ class LaneDetector():
                                         np.average(r_params,0,weights[-len(l_params):]),
                                         np.average(l_radius,0,weights[-len(l_params):]),
                                         np.average(r_radius,0,weights[-len(l_params):]))
+        
         return annotatedFrame      
 
     def showLaneParameters(self):
@@ -509,28 +698,31 @@ class LaneDetector():
                 #Read frame
                 self.ret, self.frame = self.cap.read()
                 self.undistorted = self.frame
-                
+                #self.undistorted = LaneDetector.undistortFrame(self, self.undistorted)
                 #Resize the frame
                 #resizedFrame = LaneDetector.resizeFrame(self,self.undistorted,0.5,0.67) #640 x 360---->320 x 240
-
+                #resizedFrame = LaneDetector.resizeFrame(self,self.frame)
+                #self.undistorted = cv2.resize(self.undistorted, None,fx=2, fy=2, interpolation = cv2.INTER_AREA )
                 #Apply color filter to the frame
-                #filteredFrame = LaneDetector.colorFilter(self,resizedFrame)
+                #self.undistorted = LaneDetector.colorFilter(self,self.undistorted)
+                
+          
                 
                 #Apply canny algorithm to detect lines
                 canny = cv2.Canny(self.undistorted,200,255)
                 
-
+                cv2.imshow('',canny)
+                cv2.waitKey(1)
 
                 #Change perspective view
                 self.warpedFrame = LaneDetector.warpPerspective(self, canny)
-                cv2.imshow('',canny)
-                cv2.waitKey(1)
-                #cv2.imshow('Canny',self.warpedFrame)
+            
+                cv2.imshow('Canny',self.warpedFrame)
+                
 
                 self.annotatedFrame = LaneDetector.showLane(self)
-                #self.left_curverad=0
-                #self.right_curverad=0
-                #self.offset=0
+               
+
                 return (self.left_curverad,self.right_curverad,self.offset)
             
             except:

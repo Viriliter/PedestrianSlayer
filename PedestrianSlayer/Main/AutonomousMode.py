@@ -3,8 +3,8 @@ from ImageProcessing import ObjectDetector as od
 from ImageProcessing import CascadeClassifier as cc
 from MechanicalControl import MotorControl as mc
 from MechanicalControl import ServoControl as sc
-from MechanicalControl import NeuralNetwork as nn
-from Sensors import SensorThread as st
+#from MechanicalControl import NeuralNetwork as nn
+#from Sensors import SensorThread as st
 import time
 
 class AutonomousMode(object):
@@ -36,8 +36,8 @@ class AutonomousMode(object):
         self.servoControl = sc.ServoControl()
         #self.objectDetector = od.ObjectDetector()
         #self.cascadeClassifier = cc.CascadeClassifier()
-        self.sensorThread = st.SensorThread()
-        self.neuralNetwork = nn.NeuralNetwork()
+        #self.sensorThread = st.SensorThread()
+        #self.neuralNetwork = nn.NeuralNetwork()
         self.count = 0
         self.user_input = None
         # Create new threads
@@ -60,6 +60,8 @@ class AutonomousMode(object):
             millis1 = int(round(time.time() * 1000))
             #radiusLeft,radiusRight,deviation = lanedetector.getLaneParameters()
             millis2 = int(round(time.time() * 1000))
+            self.motorControl.forwardMotor(0)
+            self.servoMotor.angle(0)
             #print (millis2-millis1)
             if not(radiusLeft==0 and radiusRight==0 and deviation==0):
                 #print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
@@ -70,8 +72,7 @@ class AutonomousMode(object):
                 #frame = self.objectDetector.getUndistortedFrame()
                 #magnitude = self.objectDetector.run(frame)
 
-                self.motorControl.forwardMotor(0)
-                self.servoMotor.angle(10)
+
                 magnitude=-1
                 #Use motor and servo control algorithm to find steering angle and motor thrust.
                 #Use 4 parameters:p1, p2, p3, and magnitude. Magnitude value overrules steering angle.
