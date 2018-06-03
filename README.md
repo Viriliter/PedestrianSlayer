@@ -34,17 +34,20 @@ Write following command on the terminal to setup the algorithm on Raspberry Pi:
 ```
 git clone https://github.com/Viriliter/PedestrianSlayer/
 ```
-## Project
-Diagram shows an overview of schematic of the main code:
-![alt text](https://raw.githubusercontent.com/Viriliter/PedestrianSlayer/branch/path/to/img.png)
+
 ## Goals
 The goal of the project is establish a RC car that follows the lines on the road. Additionally, it is requested to detect the obstacle on road and avoid them creating new route. In the meantime, it will detect the stop sign and stop within 10cm distance.
 ## Running the tests
 
 ## Contributing
-
+Mert Limoncuoğlu
+Ali Subay
+Ali Kerem Erdem
+Muhammed Aybars Yalçın
+Alperen Alsoy
+Hakan Yanık
 ## Versioning
-
+1.0
 ## Authors
 Mert Limoncuoğlu
 
