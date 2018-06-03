@@ -52,6 +52,6 @@ Hakan Yanık
 Mert Limoncuoğlu
 
 ## Acknowledgments
-Some parts of the lane detection algorithm are adopted by darienmt. For more details,
+Some parts of the lane detection algorithm are inspired by darienmt. For more details,
 visit the link: https://github.com/darienmt/CarND-Advanced-Lane-Lines-P4
 
