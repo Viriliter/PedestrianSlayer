@@ -40,12 +40,7 @@ The goal of the project is establish a RC car that follows the lines on the road
 ## Running the tests
 
 ## Contributing
-Mert Limoncuoğlu
-Ali Subay
-Ali Kerem Erdem
-Muhammed Aybars Yalçın
-Alperen Alsoy
-Hakan Yanık
+Mert Limoncuoğlu  Ali Subay  Ali Kerem Erdem  Muhammed Aybars Yalçın Alperen Alsoy  Hakan Yanık
 ## Versioning
 1.0
 ## Authors
