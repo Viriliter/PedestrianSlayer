@@ -133,8 +133,8 @@ class LaneDetector():
     #region
     def captureVideo(self, source = ""):
         if(source==""):
-            #self.cap = cv2.VideoCapture('/home/pi/Desktop/vidivodo8.mp4')
-            self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/Yeniklasör/videoplayback2.mp4')
+            self.cap = cv2.VideoCapture('/home/pi/Desktop/TestVideo.mp4')
+            #self.cap = cv2.VideoCapture('C:/Users/ASUS/Desktop/TestVideo.mp4')
 
             #self.cap.set(cv2.cv.CV_CAP_PROP_FPS,1000)
         else:
@@ -715,14 +715,10 @@ class LaneDetector():
                 cv2.waitKey(1)
 
                 #Change perspective view
-                self.warpedFrame = LaneDetector.warpPerspective(self, canny)
-            
-                cv2.imshow('Canny',self.warpedFrame)
-                
+                self.warpedFrame = LaneDetector.warpPerspective(self, canny)                
 
                 self.annotatedFrame = LaneDetector.showLane(self)
-               
-
+                
                 return (self.left_curverad,self.right_curverad,self.offset)
             
             except:

@@ -17,12 +17,12 @@ class ArduinoCommunication(object):
         self.timeout = timeout
         self.write_timeout = write_timeout
         self.isDataSended = True
-        #self.serialCom = serial.Serial(self.portName,self.baudrate,self.bytesize,self.parity,self.stopbits,self.timeout,write_timeout=self.write_timeout)
-        #if(self.serialCom.isOpen()==False):
-        #    self.serialCom.open()
-        #else:
-        #    ArduinoCommunication.refresh(self)
-        #self.timer = 0
+        self.serialCom = serial.Serial(self.portName,self.baudrate,self.bytesize,self.parity,self.stopbits,self.timeout,write_timeout=self.write_timeout)
+        if(self.serialCom.isOpen()==False):
+            self.serialCom.open()
+        else:
+            ArduinoCommunication.refresh(self)
+        self.timer = 0
 
     #Mutators
     #region

@@ -3,8 +3,8 @@ from ImageProcessing import ObjectDetector as od
 from ImageProcessing import CascadeClassifier as cc
 from MechanicalControl import MotorControl as mc
 from MechanicalControl import ServoControl as sc
-#from MechanicalControl import NeuralNetwork as nn
-#from Sensors import SensorThread as st
+from MechanicalControl import NeuralNetwork as nn
+from Sensors import SensorThread as st
 import time
 
 class AutonomousMode(object):
@@ -58,20 +58,42 @@ class AutonomousMode(object):
         lanedetector = ld.LaneDetector()
         while(True):
             millis1 = int(round(time.time() * 1000))
-            #radiusLeft,radiusRight,deviation = lanedetector.getLaneParameters()
+            radiusLeft,radiusRight,deviation = lanedetector.getLaneParameters()
             millis2 = int(round(time.time() * 1000))
-            self.motorControl.forwardMotor(0)
-            self.servoMotor.angle(0)
+            #self.motorControl.forwardMotor(0)
+            #self.servoControl.angle(0)
             #print (millis2-millis1)
             if not(radiusLeft==0 and radiusRight==0 and deviation==0):
                 #print(str(radiusLeft)+" ; "+str(radiusRight)+" ; "+str(deviation))
                 #lanedetector.showFrame("AnnotedFrame")
                 #lanedetector.waitKey()
-                #middle_radius = (radiusLeft+radiusRight)/2
+                middle_radius = (radiusLeft+radiusRight)/2
                 #Get undistorted frame. Run objectDetector
-                #frame = self.objectDetector.getUndistortedFrame()
-                #magnitude = self.objectDetector.run(frame)
+                frame = self.objectDetector.getUndistortedFrame()
+                magnitude = self.objectDetector.run(frame)
 
+                speed_ideal = self.motorControl.speedNegotiation(middle_radius)
+                #Ideal speed thresholds
+                if(speed_ideal>30):
+                    bit_speed = 255
+                if(speed_idal<1):
+                    bit_speed = 10
+
+                #Convert ideal speed as 1 byte 0-255
+                self.motorControl.forwardMotor(bit_speed)
+                
+                bit_angle = deviation/510+174
+                #Steering angle threasholds
+                if(deviation>0.49):
+                    bit_angle = 255
+                if(deviation<-0.49):
+                    bit_angle = 0
+
+                #Convert devaiation value to bit_angle for steering angle
+                self.servoControl.steerAngleControl(bit_angle)
+                '''
+                This section for avoiding from object
+                '''
 
                 magnitude=-1
                 #Use motor and servo control algorithm to find steering angle and motor thrust.
